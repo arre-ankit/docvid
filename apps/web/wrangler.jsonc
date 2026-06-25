@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "docvid-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+
+  // Service binding to the AI backend Worker (deployed separately from workers/ai-worker).
+  // In `next dev` this binding is absent, so the API routes fall back to AI_BACKEND_URL.
+  "services": [{ "binding": "AI_BACKEND", "service": "docvid-ai" }],
+
+  "vars": {
+    // Local-dev fallback target for the AI backend (wrangler dev defaults to :8787).
+    "AI_BACKEND_URL": "http://localhost:8787"
+  }
+}
