@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+.next/
+.open-next/
+out/
+*.tsbuildinfo
+
+# cloudflare / wrangler
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts
+worker-configuration.d.ts
+
+# turbo
+.turbo/
+
+# env
+.env
+.env.local
+.env*.local
+
+# misc
+.DS_Store
+*.log
+.vscode/
