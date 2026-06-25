@@ -1,0 +1,6 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="#13211a"/>
+  <text x="-1" y="46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" font-weight="800" fill="#CBFF2E">{</text>
+  <text x="39" y="46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" font-weight="800" fill="#CBFF2E">}</text>
+  <path d="M21 14 L46 32 L21 50 Z" fill="#ffffff"/>
+</svg>
