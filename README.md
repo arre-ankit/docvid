@@ -4,18 +4,18 @@ Turn docs and prompts into narrated, animated code lessons.
 
 A pnpm + Turborepo monorepo:
 
+Every workspace lives under `packages/*` — deployables and libraries side by side:
+
 ```
 docvid/
-├── apps/
-│   └── web/              # Next.js app (frontend + API routes), deployed via OpenNext to Cloudflare
-├── workers/
-│   ├── ai-worker/        # Cloudflare Worker: lesson generation (Workers AI, Workflows, KV, R2)
-│   └── payments-worker/  # Cloudflare Worker: Dodo Payments checkout + webhooks → D1 (later)
-├── packages/
-│   └── shared/           # Shared TypeScript types and validation
-└── db/
-    └── migrations/       # D1 schema migrations (later)
+└── packages/
+    ├── web/              # Next.js app (frontend + API routes), deployed via OpenNext to Cloudflare
+    ├── ai-worker/        # Cloudflare Worker: lesson generation (Workers AI, Workflows, KV, R2)
+    ├── payments-worker/  # Cloudflare Worker: Dodo Payments checkout + webhooks → D1 (later)
+    └── shared/           # Shared TypeScript types and validation (library, not deployed)
 ```
+
+D1 schema migrations live in `db/migrations/` (added in Phase 2).
 
 ## Getting started
 
