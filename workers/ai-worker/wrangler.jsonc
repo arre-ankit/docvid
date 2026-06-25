@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "docvid-ai",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  // Workers AI: env.AI.run(model, ...) — generates the lesson (code steps + narration)
+  // and synthesizes narration audio (Inworld TTS 2 / MeloTTS).
+  "ai": { "binding": "AI" },
+
+  // Durable, retryable orchestration: plan -> validate -> narrate (TTS) -> persist.
+  "workflows": [
+    {
+      "name": "teach",
+      "binding": "TEACH_WORKFLOW",
+      "class_name": "TeachWorkflow"
+    }
+  ],
+
+  // Lesson JSON keyed by workflow instance id.
+  "kv_namespaces": [
+    { "binding": "LESSONS", "id": "REPLACE_WITH_KV_ID" }
+  ],
+
+  // Generated narration audio (WAV/MP3).
+  "r2_buckets": [
+    { "binding": "LESSON_AUDIO", "bucket_name": "docvid-lesson-audio" }
+  ],
+
+  "vars": {
+    // Overridable Workers AI model id for the lesson generation step.
+    // 8b-fast is much less likely to hit inference upstream 504s than 70b; bump if you
+    // want higher-quality lessons and your account/region tolerates the latency.
+    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fast",
+    // Default Inworld TTS 2 voice id (e.g. Dennis, Olivia).
+    "DEFAULT_VOICE": "Dennis",
+    // Comma-separated list of allowed CORS origins for the web app (override per env).
+    "ALLOWED_ORIGINS": "http://localhost:3000"
+  }
+
+  // "URL -> tutorial" uses Workers AI env.AI.toMarkdown() (free for most formats),
+  // so it needs no extra binding or token beyond the AI binding above.
+  // Narration TTS (Inworld TTS 2 + MeloTTS) is built into the AI binding — no API key.
+}
