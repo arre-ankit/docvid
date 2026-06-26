@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
  * uses currentColor (foreground) — black in light mode, white in dark mode —
  * while the braces are the brand lime (#CBFF2E).
  */
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, colour }: { className?: string, colour?: string }) {
   return (
     <span
       role="img"
@@ -21,7 +21,7 @@ export function Logo({ className }: { className?: string }) {
         aria-hidden="true"
         className="-mx-[0.08em] h-[0.82em] w-[0.6em] shrink-0"
       >
-        <path d="M22 12 L88 50 L22 88 Z" fill="currentColor" />
+        <path d="M22 12 L88 50 L22 88 Z" fill={colour || "#FFFFFF"} />
       </svg>
       <span className="text-[#CBFF2E]">{"}"}</span>
     </span>

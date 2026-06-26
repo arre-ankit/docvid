@@ -169,7 +169,7 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
       <div className="mx-auto flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <Logo className="text-xl sm:text-2xl" />
+          <Logo className="text-xl sm:text-2xl" colour="#000000" />
           <h1 className="font-sans text-base font-bold tracking-tight text-foreground sm:text-xl">
             DocVid
           </h1>
