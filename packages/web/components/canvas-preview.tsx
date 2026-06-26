@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,44 @@ import type { RenderTheme } from "@/app/lib/magicMove/codeLayout";
 import { cn } from "@/lib/utils";
 
 const PADDING_PRESETS = [48, 64, 128] as const;
+
+/** Scale content down in fullscreen so the frame + caption fit above the controls. */
+function useFitScale(
+  containerRef: React.RefObject<HTMLElement | null>,
+  contentRef: React.RefObject<HTMLElement | null>,
+  enabled: boolean,
+) {
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!enabled) {
+      setScale(1);
+      return;
+    }
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+
+    const update = () => {
+      const pad = 16;
+      const captionReserve = enabled ? 56 : 0;
+      const cw = container.clientWidth - pad * 2;
+      const ch = container.clientHeight - pad * 2 - captionReserve;
+      const sw = content.offsetWidth;
+      const sh = content.offsetHeight;
+      if (sw === 0 || sh === 0) return;
+      setScale(Math.min(1, cw / sw, ch / sh));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [enabled, containerRef, contentRef]);
+
+  return scale;
+}
 
 interface CanvasPreviewProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -73,6 +111,9 @@ export function CanvasPreview({
   isFullscreen,
 }: CanvasPreviewProps) {
   const hasShownRef = useRef(false);
+  const previewViewportRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const fitScale = useFitScale(previewViewportRef, frameRef, !!isFullscreen);
   const shouldAnimate = !isLoading && !hasShownRef.current;
 
   if (!isLoading) {
@@ -80,7 +121,15 @@ export function CanvasPreview({
   }
 
   return (
-    <div ref={containerRef} className="flex-1 relative min-h-0 flex flex-col bg-background">
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative flex min-h-0 flex-1 flex-col",
+        isFullscreen
+          ? "bg-zinc-950 [&:fullscreen]:flex [&:fullscreen]:h-dvh [&:fullscreen]:w-screen [&:fullscreen]:bg-zinc-950"
+          : "bg-background",
+      )}
+    >
       {layoutError && (
         <div className="absolute top-4 left-4 right-4 z-50 bg-destructive/10 text-destructive border border-destructive/20 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
           <span>{layoutError}</span>
@@ -96,20 +145,30 @@ export function CanvasPreview({
       )}
 
       <div
+        ref={previewViewportRef}
         className={cn(
-          "flex-1 min-h-0 relative flex items-center justify-center p-8 bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')] bg-center",
-          // Fullscreen: fit the video, no scrolling. Otherwise scroll vertically only.
-          isFullscreen ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
+          "relative flex min-h-0 flex-1 items-center justify-center",
+          isFullscreen
+            ? "overflow-hidden bg-zinc-950 p-4"
+            : "overflow-y-auto overflow-x-hidden bg-[url('/grid-pattern.svg')] p-8 dark:bg-[url('/grid-pattern-dark.svg')] bg-center",
         )}
       >
         {!isLoading && (
-          <div className="flex flex-col items-center">
+          <div
+            className="flex flex-col items-center"
+            style={
+              isFullscreen
+                ? { transform: `scale(${fitScale})`, transformOrigin: "center center" }
+                : undefined
+            }
+          >
             <div
+              ref={frameRef}
               className={cn(
-                "relative rounded-lg overflow-hidden",
+                "relative overflow-hidden rounded-lg",
                 backgroundPadding > 0
                   ? ""
-                  : "shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-zinc-950",
+                  : "bg-zinc-950 shadow-2xl ring-1 ring-black/5 dark:ring-white/10",
                 shouldAnimate ? "opacity-0 animate-[fadeIn_0.3s_ease-in-out_forwards]" : "opacity-100",
               )}
             >
@@ -142,7 +201,12 @@ export function CanvasPreview({
             always visible (including fullscreen), never clipped by a tall frame.
             The exported video burns the caption into the frame separately. */}
         {caption && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 flex justify-center px-4">
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-x-0 z-40 flex justify-center px-4",
+              isFullscreen ? "bottom-6" : "bottom-4",
+            )}
+          >
             {caption}
           </div>
         )}
@@ -187,7 +251,14 @@ export function CanvasPreview({
 
       {/* Player controls live below the preview (in normal flow) so they never
           overlap the code frame or its caption, however tall the code gets. */}
-      <div className="relative z-10 shrink-0 px-4 pb-3 pt-1">{children}</div>
+      <div
+        className={cn(
+          "relative z-10 shrink-0 px-4 pt-1",
+          isFullscreen ? "pb-4" : "pb-3",
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

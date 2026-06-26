@@ -75,11 +75,17 @@ function TeachInner() {
     if (autoStartedRef.current) return;
     const urlParam = searchParams.get("url");
     const promptParam = searchParams.get("prompt");
+    const voiceParam = searchParams.get("voice");
     if (!urlParam && !promptParam) return;
     autoStartedRef.current = true;
     if (urlParam) setUrl(urlParam);
     if (promptParam) setPrompt(promptParam);
-    void onGenerate({ url: urlParam ?? undefined, prompt: promptParam ?? undefined });
+    if (voiceParam) setVoice(voiceParam);
+    void onGenerate({
+      url: urlParam ?? undefined,
+      prompt: promptParam ?? undefined,
+      voice: voiceParam ?? undefined,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -124,9 +130,14 @@ function TeachInner() {
     [router],
   );
 
-  const onGenerate = async (override?: { url?: string; prompt?: string }) => {
+  const onGenerate = async (override?: {
+    url?: string;
+    prompt?: string;
+    voice?: string;
+  }) => {
     const trimmed = (override?.prompt ?? prompt).trim();
     const trimmedUrl = (override?.url ?? url).trim();
+    const useVoice = override?.voice ?? voice;
     if ((!trimmed && !trimmedUrl) || phase === "generating") return;
     stopPolling();
     setPhase("generating");
@@ -136,7 +147,7 @@ function TeachInner() {
       const res = await fetch("/api/teach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: trimmed, url: trimmedUrl || undefined, language, voice }),
+        body: JSON.stringify({ prompt: trimmed, url: trimmedUrl || undefined, language, voice: useVoice }),
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };

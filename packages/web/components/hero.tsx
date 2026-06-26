@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Link2, FileText, Play, ArrowRight } from "lucide-react";
+import { Link2, FileText, Play, ArrowUp, AudioLines } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LESSON_VOICES as VOICES, DEFAULT_VOICE } from "@/app/lib/teach/voices";
 import {
   siReact,
   siNextdotjs,
@@ -25,12 +34,14 @@ import {
 const LIME = "#CBFF2E";
 const GREEN = "#007A55";
 
-// Docs links the input typewriter cycles through.
-const SAMPLE_DOCS = [
-  "https://react.dev/learn/add-react-to-an-existing-project",
-  "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
-  "https://docs.python.org/3/tutorial/classes.html",
-  "https://tailwindcss.com/docs/installation/using-vite",
+// The single box handles both free-text prompts and pasted docs URLs.
+const looksLikeUrl = (s: string) =>
+  /^https?:\/\//i.test(s) || (/^[^\s]+\.[^\s]{2,}/.test(s) && !/\s/.test(s));
+
+const PROMPT_EXAMPLES = [
+  "Explain useEffect cleanup",
+  "How to debounce in JavaScript",
+  "Refactor a callback into async/await",
 ];
 
 /**
@@ -177,19 +188,28 @@ const EXAMPLES = [
   },
 ];
 
-/* uploadThing-style card: docs spilling out the top, link input in the body. */
+/* Doc-burst hero: logos spill over a dark chat box that kicks off generation. */
 function DocsCard() {
   const router = useRouter();
   const [value, setValue] = useState("");
-  const [focused, setFocused] = useState(false);
-  const placeholder = useTypewriter(SAMPLE_DOCS, focused || value.length > 0);
+  const [voice, setVoice] = useState(DEFAULT_VOICE);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  function submit(e?: React.FormEvent) {
-    e?.preventDefault();
-    const target = value.trim() || placeholder;
-    if (!target) return;
-    router.push(`/teach?url=${encodeURIComponent(target)}`);
-  }
+  const canGenerate = !!value.trim();
+
+  const submit = () => {
+    const v = value.trim();
+    if (!v) return;
+    const q = looksLikeUrl(v)
+      ? `url=${encodeURIComponent(v)}`
+      : `prompt=${encodeURIComponent(v)}`;
+    router.push(`/teach?${q}&voice=${encodeURIComponent(voice)}`);
+  };
+
+  const fillInput = (text: string) => {
+    setValue(text);
+    inputRef.current?.focus();
+  };
 
   return (
     <div className="relative isolate mx-auto max-w-3xl">
@@ -209,142 +229,95 @@ function DocsCard() {
         ))}
       </div>
 
-      {/* the card — green → lime gradient across the whole surface */}
-      <div
-        className="relative z-10 overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl"
-        style={{ background: `linear-gradient(120deg, ${GREEN}, ${LIME})` }}
-      >
-        {/* diagonal sheen */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(120deg, rgba(255,255,255,0.30) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.18) 100%)",
+      {/* dark chat-style box */}
+      <div className="relative z-10 rounded-3xl border border-white/10 bg-[#1b1b1e] p-2.5 shadow-2xl">
+        <textarea
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
           }}
-        />
-        {/* dotted texture */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)",
-            backgroundSize: "16px 16px",
-          }}
-        />
-        {/* oversized doc watermark */}
-        <FileText
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-10 -right-8 h-56 w-56 text-white/15"
+          rows={3}
+          placeholder="Describe what you want to learn, or paste a docs link…"
+          aria-label="Describe a lesson or paste a docs link"
+          className="min-h-24 w-full resize-none bg-transparent px-3 pt-3 text-base text-white placeholder:text-white/40 focus:outline-none"
         />
 
-        {/* body */}
-        <div className="relative px-6 pt-10 pb-10 text-center sm:px-10 sm:pt-12 sm:pb-12">
-          {/* white doc icon tile */}
-          <div className="relative mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-white shadow-lg ring-1 ring-black/5 sm:h-[68px] sm:w-[68px]">
-            <FileText className="h-8 w-8" style={{ color: GREEN }} />
-          </div>
+        <div className="mt-1.5 flex items-center gap-1 px-1.5 pb-0.5">
+          {/* voice */}
+          <Select value={voice} onValueChange={setVoice}>
+            <SelectTrigger className="h-9 w-auto gap-1.5 rounded-lg border-0 bg-transparent px-2.5 text-xs text-white/70 hover:bg-white/10 hover:text-white focus:ring-0 focus:ring-offset-0">
+              <AudioLines className="h-4 w-4 opacity-80" />
+              <SelectValue placeholder="Voice" />
+            </SelectTrigger>
+            <SelectContent>
+              {VOICES.map((v) => (
+                <SelectItem key={v.value} value={v.value}>
+                  {v.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <h3 className="font-serif text-2xl font-medium leading-tight tracking-tight text-[#06281c] sm:text-4xl">
-            Paste your documentation link
-          </h3>
-          <p className="mt-4 text-base text-[#06281c]/75 sm:text-lg">
-            We&apos;ll read the whole thing and build a video lesson around it.
-          </p>
-
-          {/* input */}
-          <form
-            onSubmit={submit}
-            className="group mt-6 flex items-stretch gap-2 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-black/5 transition-all focus-within:ring-2 focus-within:ring-[#06281c]/30"
+          {/* generate */}
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!canGenerate}
+            aria-label="Generate lesson"
+            className={cn(
+              "ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
+              canGenerate
+                ? "text-white shadow-md hover:brightness-110"
+                : "cursor-not-allowed bg-white/10 text-white/40",
+            )}
+            style={
+              canGenerate
+                ? { background: `linear-gradient(120deg, ${GREEN}, #0a9e6e)` }
+                : undefined
+            }
           >
-            <span className="flex items-center pl-2.5 text-neutral-400">
-              <Link2 className="h-5 w-5" />
-            </span>
-            <input
-              type="text"
-              inputMode="url"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              placeholder={placeholder}
-              aria-label="Paste a documentation URL"
-              className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none sm:text-base"
-            />
-            <button
-              type="submit"
-              className="flex shrink-0 items-center gap-1.5 rounded-xl px-5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.03] active:scale-95"
-              style={{ background: `linear-gradient(120deg, ${GREEN}, #0a9e6e)` }}
-            >
-              Generate
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </form>
+            <ArrowUp className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
-          {/* quick-pick chips */}
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex.label}
-                type="button"
-                onClick={() => setValue(ex.url)}
-                className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-[#06281c] ring-1 ring-black/5 transition-colors hover:bg-white"
-              >
-                {ex.label}
-              </button>
-            ))}
-          </div>
+      {/* quick-fill chips */}
+      <div className="relative z-10 mt-5 space-y-2.5 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Link2 className="h-3.5 w-3.5" /> Or paste a docs link:
+          </span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex.label}
+              type="button"
+              onClick={() => fillInput(ex.url)}
+              className="rounded-full border border-border/60 bg-card/70 px-3 py-1 text-xs font-medium text-foreground/80 backdrop-blur-sm transition-colors hover:border-[color:var(--c)] hover:text-[color:var(--c)]"
+              style={{ ["--c" as string]: GREEN }}
+            >
+              {ex.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {PROMPT_EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => fillInput(ex)}
+              className="rounded-full border border-border/60 bg-card/70 px-3 py-1 text-xs text-foreground/80 backdrop-blur-sm transition-colors hover:border-[color:var(--c)] hover:text-[color:var(--c)]"
+              style={{ ["--c" as string]: GREEN }}
+            >
+              {ex}
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
-}
-
-/**
- * Types a string out char-by-char, pauses, deletes, advances to the next.
- * Pauses entirely while `paused` is true (input focused or has content).
- */
-function useTypewriter(items: string[], paused: boolean) {
-  const [text, setText] = useState(items[0] ?? "");
-  const idx = useRef(0);
-  const phase = useRef<"typing" | "holding" | "deleting">("holding");
-
-  useEffect(() => {
-    if (paused) return;
-    let timer: ReturnType<typeof setTimeout>;
-
-    const step = () => {
-      const full = items[idx.current] ?? "";
-      const cur = text;
-
-      if (phase.current === "typing") {
-        if (cur.length < full.length) {
-          setText(full.slice(0, cur.length + 1));
-          timer = setTimeout(step, 45);
-        } else {
-          phase.current = "holding";
-          timer = setTimeout(step, 1600);
-        }
-      } else if (phase.current === "deleting") {
-        if (cur.length > 0) {
-          setText(cur.slice(0, -1));
-          timer = setTimeout(step, 22);
-        } else {
-          idx.current = (idx.current + 1) % items.length;
-          phase.current = "typing";
-          timer = setTimeout(step, 120);
-        }
-      } else {
-        phase.current = cur.length >= full.length ? "deleting" : "typing";
-        timer = setTimeout(step, 200);
-      }
-    };
-
-    timer = setTimeout(step, 400);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, paused]);
-
-  return text;
 }

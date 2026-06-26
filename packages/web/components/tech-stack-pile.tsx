@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as Matter from "matter-js";
+// Type-only: the runtime library is dynamically imported inside the effect so
+// its module-load time read (`Date.now()`) never runs during prerender.
+import type * as MatterNS from "matter-js";
 import {
   siReact,
   siNextdotjs,
@@ -87,6 +89,27 @@ export function TechStackPile() {
     if (!scene) return;
     if (typeof window === "undefined") return;
 
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    void (async () => {
+      const mod = await import("matter-js");
+      const Matter =
+        (mod as unknown as { default?: typeof MatterNS }).default ??
+        (mod as unknown as typeof MatterNS);
+      if (cancelled) return;
+      cleanup = setup(Matter);
+    })();
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+
+    // Builds the physics scene once Matter has loaded; returns its teardown.
+    function setup(Matter: typeof MatterNS): () => void {
+      if (!scene) return () => {};
+
     // Respect users who prefer no motion: leave the tiles statically piled.
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -100,7 +123,7 @@ export function TechStackPile() {
     engine.gravity.y = 0; // held until the section scrolls into view
 
     // ---- Boundaries: floor + two side walls (open top so tiles can be thrown up) ----
-    const wallOpts: Matter.IChamferableBodyDefinition = { isStatic: true };
+    const wallOpts: MatterNS.IChamferableBodyDefinition = { isStatic: true };
     const makeWalls = () => [
       Matter.Bodies.rectangle(width / 2, height + 100, width + 600, 200, wallOpts), // floor
       Matter.Bodies.rectangle(-100, height / 2, 200, height * 4, wallOpts), // left
@@ -239,6 +262,7 @@ export function TechStackPile() {
       Matter.World.clear(engine.world, false);
       Matter.Engine.clear(engine);
     };
+    }
   }, []);
 
   return (

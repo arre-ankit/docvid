@@ -8,7 +8,6 @@ import {
   Volume2,
   VolumeX,
   Download,
-  Mic,
   Maximize2,
   Minimize2,
 } from "lucide-react";
@@ -18,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { BackgroundCombobox } from "@/components/background-combobox";
 import { LESSON_VOICES } from "@/app/lib/teach/voices";
 import type { ExportFormat } from "@/app/lib/video/types";
+import { ShareButton } from "@/components/share-button";
 import { cn } from "@/lib/utils";
 
 /** Format milliseconds as m:ss (e.g. 148979 -> "2:29"). */
@@ -189,7 +189,14 @@ export function PlayerControls({
   }, [isPlaying, playheadMs, totalMs, lessonMode]);
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-2xl bg-background/60 p-3 shadow-lg ring-1 ring-black/[0.08] backdrop-blur-xl dark:ring-white/[0.08]">
+    <div
+      className={cn(
+        "flex flex-col gap-2.5 rounded-2xl p-3 shadow-lg ring-1 backdrop-blur-xl",
+        isFullscreen
+          ? "bg-zinc-900/95 text-zinc-200 ring-white/10 [&_.text-muted-foreground]:text-zinc-400"
+          : "bg-background/60 ring-black/[0.08] dark:ring-white/[0.08]",
+      )}
+    >
       {/* Transport: play / scrubber / timecodes */}
       <div className="flex items-center gap-3">
         <Button
@@ -230,72 +237,63 @@ export function PlayerControls({
         </span>
       </div>
 
-      {/* Options: playback tools, lesson styling, export */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-border/40 pt-2.5">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground"
-          onClick={onReset}
-          title="Reset"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground"
-          onClick={onSoundToggle}
-          title={soundEnabled ? "Mute narration" : "Unmute narration"}
-        >
-          {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-        </Button>
-        {onToggleFullscreen && (
+      {/* Options: styling on the left, voice + playback + export on the right */}
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 border-t pt-2.5",
+          isFullscreen ? "border-white/10" : "border-border/40",
+        )}
+      >
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground"
-            onClick={onToggleFullscreen}
-            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            className={cn(
+              "h-8 w-8 shrink-0",
+              isFullscreen ? "text-zinc-400 hover:text-zinc-200" : "text-muted-foreground",
+            )}
+            onClick={onReset}
+            title="Reset"
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            <RotateCcw className="w-4 h-4" />
           </Button>
-        )}
-        {onShowLineNumbersChange && (
-          <label className="flex items-center gap-1.5 pl-1 text-xs text-muted-foreground" title="Show line numbers">
-            <span className="whitespace-nowrap">Line numbers</span>
-            <Switch checked={!!showLineNumbers} onCheckedChange={onShowLineNumbersChange} />
-          </label>
-        )}
+          {onShowLineNumbersChange && (
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground" title="Show line numbers">
+              <span className="whitespace-nowrap">Line numbers</span>
+              <Switch checked={!!showLineNumbers} onCheckedChange={onShowLineNumbersChange} />
+            </label>
+          )}
 
-        {lessonMode && (onBackgroundThemeIdChange || onCaptionThemeIdChange || onRevoice) && (
-          <div className="mx-0.5 h-5 w-px bg-border/50" />
-        )}
+          {lessonMode && (onBackgroundThemeIdChange || onCaptionThemeIdChange) && (
+            <div className="mx-0.5 hidden h-5 w-px bg-border/50 sm:block" />
+          )}
 
-        {lessonMode && onBackgroundThemeIdChange && (
-          <div className="flex items-center gap-1" title="Frame background">
-            <span className="text-xs whitespace-nowrap text-muted-foreground">Background</span>
-            <BackgroundCombobox
-              backgroundThemeId={backgroundThemeId ?? "none"}
-              onBackgroundThemeIdChange={onBackgroundThemeIdChange}
-            />
-          </div>
-        )}
-        {lessonMode && onCaptionThemeIdChange && (
-          <div className="flex items-center gap-1" title="Caption background">
-            <span className="text-xs whitespace-nowrap text-muted-foreground">Caption</span>
-            <BackgroundCombobox
-              backgroundThemeId={captionThemeId ?? "none"}
-              onBackgroundThemeIdChange={onCaptionThemeIdChange}
-            />
-          </div>
-        )}
-        {lessonMode && (
-          <div className="flex items-center gap-1.5" title="Change the narration voice — coming soon (Pro)">
-            <Mic className="h-4 w-4 text-muted-foreground" />
+          {lessonMode && onBackgroundThemeIdChange && (
+            <div className="flex items-center gap-1" title="Frame background">
+              <span className="text-xs whitespace-nowrap text-muted-foreground">Background</span>
+              <BackgroundCombobox
+                backgroundThemeId={backgroundThemeId ?? "none"}
+                onBackgroundThemeIdChange={onBackgroundThemeIdChange}
+              />
+            </div>
+          )}
+          {lessonMode && onCaptionThemeIdChange && (
+            <div className="flex items-center gap-1" title="Caption background">
+              <span className="text-xs whitespace-nowrap text-muted-foreground">Caption</span>
+              <BackgroundCombobox
+                backgroundThemeId={captionThemeId ?? "none"}
+                onBackgroundThemeIdChange={onCaptionThemeIdChange}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          {lessonMode && (
             <button
               type="button"
               disabled
+              title="Change the narration voice — coming soon (Pro)"
               className="inline-flex h-8 w-[8.5rem] cursor-not-allowed items-center justify-between gap-2 rounded-md border border-input bg-transparent px-2.5 text-xs text-muted-foreground opacity-80"
             >
               <span className="truncate">
@@ -305,11 +303,41 @@ export function PlayerControls({
                 Pro
               </span>
             </button>
-          </div>
-        )}
-
-        {/* Export control, pushed to the right (MP4 only, auto-downloads) */}
-        <div className="ml-auto flex items-center gap-2">
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              isFullscreen ? "text-zinc-400 hover:text-zinc-200" : "text-muted-foreground",
+            )}
+            onClick={onSoundToggle}
+            title={soundEnabled ? "Mute narration" : "Unmute narration"}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </Button>
+          {onToggleFullscreen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-8 w-8",
+                isFullscreen ? "text-zinc-400 hover:text-zinc-200" : "text-muted-foreground",
+              )}
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          )}
+          <div className="mx-0.5 h-5 w-px bg-border/50" />
+          <ShareButton
+            className={cn(
+              isFullscreen
+                ? "border-white/15 text-zinc-200 hover:bg-white/10 hover:text-white"
+                : "text-muted-foreground",
+            )}
+          />
           <Button
             size="sm"
             className={cn("min-w-[120px]", isExporting && "opacity-80")}
@@ -317,7 +345,7 @@ export function PlayerControls({
             disabled={!canExport || isExporting}
           >
             <Download className="w-4 h-4" />
-            {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export MP4"}
+            {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export"}
           </Button>
         </div>
       </div>

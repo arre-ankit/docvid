@@ -50,6 +50,9 @@ export function LessonOverlay({
 
   if (!intro) return null;
 
+  const titleSize =
+    title.length > 55 ? "text-lg sm:text-xl" : title.length > 35 ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl";
+
   // Match the editor's code panel colour; fall back to the theme variant.
   const fill = codeBg ?? (themeVariant === "dark" ? "#0d1117" : "#ffffff");
   const dark = codeBg ? hexBrightness(codeBg) < 140 : themeVariant === "dark";
@@ -62,7 +65,7 @@ export function LessonOverlay({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute z-30 flex flex-col items-center justify-center overflow-hidden px-10 text-center transition-opacity duration-500",
+        "pointer-events-none absolute z-30 flex flex-col items-center justify-center overflow-hidden px-8 py-6 text-center transition-opacity duration-500",
         introActive ? "opacity-100" : "opacity-0",
       )}
       style={{
@@ -85,10 +88,11 @@ export function LessonOverlay({
         )}
       />
 
-      <div className="relative z-10 flex max-h-full max-w-xl flex-col gap-3 overflow-hidden">
+      <div className="relative z-10 flex max-h-full w-full max-w-xl flex-col gap-2 overflow-hidden">
         <h1
           className={cn(
-            "shrink-0 text-xl font-bold leading-tight tracking-tight sm:text-3xl line-clamp-3",
+            "shrink-0 font-bold leading-snug tracking-tight text-balance",
+            titleSize,
             dark ? "text-white" : "text-zinc-900",
           )}
         >
@@ -97,7 +101,7 @@ export function LessonOverlay({
         {intro.text && (
           <p
             className={cn(
-              "min-h-0 text-xs sm:text-sm leading-relaxed line-clamp-4",
+              "min-h-0 text-xs sm:text-sm leading-relaxed line-clamp-3 text-balance",
               dark ? "text-white/70" : "text-zinc-600",
             )}
           >
