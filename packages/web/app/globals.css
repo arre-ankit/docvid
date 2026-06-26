@@ -219,3 +219,65 @@
     transform: translateX(250%);
   }
 }
+
+/* Hero edge logos teetering — about to drop toward the physics pile below. */
+@keyframes hero-tile-drop {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(12px) rotate(7deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.animate-hero-tile-drop {
+  animation: hero-tile-drop 2.6s ease-in-out infinite;
+}
+
+/* Blinking text caret for the "paste your docs" input mock. */
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-caret {
+  animation: caret-blink 1.1s steps(1) infinite;
+}
+
+/* Continuous horizontal "lottery reel" — the row of logo cells spins left. */
+@keyframes logo-reel {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-logo-reel {
+  animation: logo-reel 38s linear infinite;
+}
+
+.animate-logo-reel:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-logo-reel {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-tile-drop {
+    animation: none;
+  }
+}

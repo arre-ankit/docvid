@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Tutora logo: lime `{ }` braces wrapping a play triangle. The triangle
+ * DocVid logo: lime `{ }` braces wrapping a play triangle. The triangle
  * uses currentColor (foreground) — black in light mode, white in dark mode —
  * while the braces are the brand lime (#CBFF2E).
  */
@@ -9,7 +9,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span
       role="img"
-      aria-label="Tutora"
+      aria-label="DocVid"
       className={cn(
         "inline-flex items-center font-mono font-extrabold leading-none text-foreground",
         className,

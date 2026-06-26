@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tutora",
+  title: "DocVid",
   icons: {
     icon: "/favicon.svg",
   },
