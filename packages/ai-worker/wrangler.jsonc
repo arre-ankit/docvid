@@ -21,7 +21,7 @@
 
   // Lesson JSON keyed by workflow instance id.
   "kv_namespaces": [
-    { "binding": "LESSONS", "id": "REPLACE_WITH_KV_ID" }
+      { "binding": "LESSONS", "id": "REPLACE_WITH_KV_ID" }
   ],
 
   // Generated narration audio (WAV/MP3).

@@ -1,5 +1,46 @@
 import { describe, expect, test } from "bun:test";
-import { buildNarrationSegments, validateLesson } from "./ai";
+import { buildNarrationSegments, extractCodeBlocks, selectBlocks, validateLesson } from "./ai";
+
+describe("selectBlocks", () => {
+  test("keeps the substantive block instead of only trivial one-liners", () => {
+    // Mirrors a real doc page: install command, the main example, run command.
+    const example = Array.from({ length: 29 }, (_, i) => `line_${i + 1}()`).join("\n");
+    const { blocks } = selectBlocks([
+      { lang: "python", code: "pip install elevenlabs\npip install python-dotenv" },
+      { lang: "python", code: example },
+      { lang: "python", code: "python example.py" },
+    ]);
+    // The 29-line example must survive selection, not be dropped for the one-liners.
+    expect(blocks.some((b) => b.code === example)).toBe(true);
+  });
+});
+
+describe("extractCodeBlocks", () => {
+  test("handles fences with info-string attributes without mis-pairing", () => {
+    const md = [
+      'Intro prose.',
+      '',
+      '```js title=".env"',
+      "API_KEY=abc",
+      '```',
+      '',
+      "We'll also use the `dotenv` library to load our key.",
+      '',
+      '```python title="example.py"',
+      "import os",
+      '```',
+      '',
+      "You should hear the music playing.",
+    ].join("\n");
+
+    const blocks = extractCodeBlocks(md);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0]).toMatchObject({ lang: "js", code: "API_KEY=abc" });
+    expect(blocks[1]).toMatchObject({ lang: "python", code: "import os" });
+    // The prose between fences must never be captured as code.
+    expect(blocks.some((b) => b.code.includes("dotenv"))).toBe(false);
+  });
+});
 
 describe("validateLesson", () => {
   test("normalizes valid output and strips code fences", () => {
@@ -39,6 +80,17 @@ describe("validateLesson", () => {
       "js",
     );
     expect(lesson.steps).toHaveLength(1);
+  });
+
+  test("truncates an over-long code block with a trailing ellipsis", () => {
+    const longCode = Array.from({ length: 60 }, (_, i) => `line_${i + 1}()`).join("\n");
+    const lesson = validateLesson(
+      { title: "x", language: "js", steps: [{ code: longCode, explanation: "", narration: "y" }] },
+      "js",
+    );
+    const lines = lesson.steps[0]!.code.split("\n");
+    expect(lines.length).toBeLessThan(60);
+    expect(lines.at(-1)).toBe("...");
   });
 
   test("throws when there are no usable steps", () => {

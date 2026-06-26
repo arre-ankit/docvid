@@ -48,10 +48,59 @@ function fileNameForSource(url: string, contentType: string): string {
 }
 
 /**
+ * Many docs platforms (Mintlify, Docusaurus, …) are client-rendered SPAs: the
+ * code blocks are hydrated by JS and aren't in the raw HTML, so toMarkdown —
+ * which does not execute JS — only captures the language label, not the code.
+ * These same platforms expose a server-rendered Markdown sibling at `<url>.md`.
+ * We try that first; toMarkdown passes text/markdown through untouched, so the
+ * code blocks survive intact.
+ */
+function markdownSiblingUrl(url: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  // Only synthesize a sibling for extension-less or .html paths; anything with
+  // a real extension (.pdf/.md/.txt/…) is already in a format toMarkdown reads.
+  if (/\.md$/i.test(u.pathname)) return null;
+  if (/\.html?$/i.test(u.pathname)) {
+    u.pathname = u.pathname.replace(/\.html?$/i, ".md");
+  } else if (/\.[a-z0-9]{1,5}$/i.test(u.pathname)) {
+    return null;
+  } else {
+    u.pathname = `${u.pathname.replace(/\/$/, "")}.md`;
+  }
+  return u.toString();
+}
+
+/**
  * Fetch a URL and convert it to Markdown via Workers AI toMarkdown().
  * Throws on fetch/conversion failure so the workflow step can retry.
  */
 export async function fetchPageMarkdown(env: MarkdownEnv, url: string): Promise<string | null> {
+  // Prefer a server-rendered Markdown sibling when one exists (SPA docs sites).
+  const mdUrl = markdownSiblingUrl(url);
+  if (mdUrl) {
+    try {
+      const mdRes = await fetch(mdUrl, {
+        redirect: "follow",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; DocVid/1.0)", Accept: "text/markdown,text/plain,*/*" },
+      });
+      const ct = mdRes.headers.get("content-type")?.toLowerCase() ?? "";
+      if (mdRes.ok && (ct.includes("markdown") || ct.includes("text/plain"))) {
+        const text = await mdRes.text();
+        if (text.trim().length > 0) {
+          console.log(`[toMarkdown] using markdown sibling ${mdUrl} (${text.length} chars)`);
+          return text.slice(0, MAX_MARKDOWN_CHARS);
+        }
+      }
+    } catch {
+      // Fall through to the normal HTML → toMarkdown path.
+    }
+  }
+
   const res = await fetch(url, {
     redirect: "follow",
     headers: {

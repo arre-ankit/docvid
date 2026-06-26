@@ -95,12 +95,11 @@ function stripCodeFences(code: string): string {
 
 // Hard safety caps so a misbehaving model can't produce a snippet so wide/tall
 // that the preview canvas blows past browser size limits and renders blank.
-const MAX_CODE_LINES = 26;
+const MAX_CODE_LINES = 30;
 const MAX_LINE_CHARS = 84;
-// How many code blocks (= steps) we keep from a doc, and the largest block we
-// accept (so it isn't truncated by clampCode and stays complete).
+// How many code blocks (= steps) we keep from a doc. A too-tall block is never
+// dropped — clampCode truncates it to MAX_CODE_LINES with a trailing ellipsis.
 const MAX_BLOCK_STEPS = 8;
-const MAX_BLOCK_LINES = 26;
 
 /**
  * Some docs render code with a line-number gutter, which the conversion captures
@@ -232,11 +231,18 @@ function clampCode(code: string): string {
   const cleaned = stripLineNumberGutter(stripCodeFences(code).replace(/\t/g, "  "));
   const reflowed = reflowCollapsedCode(cleaned);
   const lines = reflowed.split("\n");
+  const truncated = lines.length > MAX_CODE_LINES;
   const clamped = lines.slice(0, MAX_CODE_LINES).map((line) =>
     line.length > MAX_LINE_CHARS ? `${line.slice(0, MAX_LINE_CHARS - 1)}…` : line,
   );
   // Drop a trailing run of blank lines so the card isn't padded with empty space.
   while (clamped.length > 1 && clamped[clamped.length - 1]!.trim() === "") clamped.pop();
+  // Mark a vertically-truncated block with an ellipsis line (indented to match
+  // the last kept line) so it reads as "more code below" rather than a hard cut.
+  if (truncated) {
+    const indent = clamped[clamped.length - 1]!.match(/^\s*/)?.[0] ?? "";
+    clamped.push(`${indent}...`);
+  }
   return clamped.join("\n");
 }
 
@@ -336,7 +342,11 @@ function normalizeLang(lang: string): string {
 /** Pull ```lang ... ``` fenced code blocks out of Markdown, in document order. */
 export function extractCodeBlocks(markdown: string): { lang: string; code: string }[] {
   const blocks: { lang: string; code: string }[] = [];
-  const re = /```([\w+#.-]*)[ \t]*\r?\n([\s\S]*?)```/g;
+  // Capture the language token, then allow any remaining info-string text on the
+  // opening line (e.g. ```js title=".env") before the newline. Without this, a
+  // fence with attributes fails to match and the regex mis-pairs the following
+  // closing/opening fences, capturing prose as a "code block".
+  const re = /```([\w+#.-]*)[^\n]*\r?\n([\s\S]*?)```/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(markdown)) !== null) {
     const lang = normalizeLang(m[1] ?? "");
@@ -352,7 +362,7 @@ export function extractCodeBlocks(markdown: string): { lang: string; code: strin
  * Choose which blocks become steps: prefer a single programming language so the
  * highlighting stays consistent, keep reasonably-sized blocks, cap the count.
  */
-function selectBlocks(
+export function selectBlocks(
   blocks: { lang: string; code: string }[],
 ): { lang: string; blocks: { lang: string; code: string }[] } {
   if (blocks.length === 0) return { lang: "tsx", blocks: [] };
@@ -373,10 +383,9 @@ function selectBlocks(
   // Keep blocks in the chosen language (plus untagged ones); fall back to all.
   let kept = blocks.filter((b) => b.lang === chosen || b.lang === "");
   if (kept.length < 2) kept = blocks.slice();
-  // Drop blocks that are too tall to show without being truncated.
-  const sized = kept.filter((b) => b.code.split("\n").length <= MAX_BLOCK_LINES);
-  if (sized.length >= 2) kept = sized;
 
+  // We never drop a block just for being tall: a too-long block is truncated
+  // with an ellipsis by clampCode so the substantive example always survives.
   return { lang: chosen || "tsx", blocks: kept.slice(0, MAX_BLOCK_STEPS) };
 }
 
@@ -412,6 +421,77 @@ const NARRATION_SCHEMA = {
   required: ["title", "hook", "steps"],
 } as const;
 
+/**
+ * Walk a (possibly truncated/garbled) JSON string and return a balanced version:
+ * any open string is closed, a dangling trailing comma is dropped, and every
+ * still-open `{`/`[` is closed in the right order. Lets us salvage the valid
+ * prefix when a small model appends junk or cuts off mid-array.
+ */
+function balanceJson(s: string): string {
+  const stack: string[] = [];
+  let inStr = false;
+  let esc = false;
+  let out = "";
+  for (const c of s) {
+    out += c;
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') inStr = true;
+    else if (c === "{") stack.push("}");
+    else if (c === "[") stack.push("]");
+    else if (c === "}" || c === "]") stack.pop();
+  }
+  if (inStr) out += '"';
+  out = out.replace(/[,\s]+$/, ""); // drop a dangling comma/whitespace
+  while (stack.length) out += stack.pop();
+  return out;
+}
+
+/** Best-effort JSON parse for small-model output that isn't always strict JSON. */
+function parseLenient(text: string): unknown {
+  let t = text
+    .trim()
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
+  const start = t.indexOf("{");
+  if (start > 0) t = t.slice(start);
+
+  try {
+    return JSON.parse(t);
+  } catch {
+    /* keep trying */
+  }
+
+  // Remove trailing commas before a closing brace/bracket.
+  const noTrailing = t.replace(/,(\s*[}\]])/g, "$1");
+  try {
+    return JSON.parse(noTrailing);
+  } catch {
+    /* keep trying */
+  }
+
+  // Salvage the valid prefix up to the reported error position, then balance.
+  try {
+    JSON.parse(t);
+  } catch (e) {
+    const pos = /position (\d+)/.exec(String((e as Error)?.message));
+    const sliced = pos ? t.slice(0, Number(pos[1])) : t;
+    try {
+      return JSON.parse(balanceJson(sliced));
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // Last resort: balance the whole thing.
+  return JSON.parse(balanceJson(t));
+}
+
 /** Run Workers AI with a JSON schema and return the parsed object payload. */
 async function runJson(env: AiEnv, system: string, user: string, schema: unknown): Promise<unknown> {
   const result = (await env.AI.run(env.AI_MODEL as keyof AiModels, {
@@ -420,19 +500,12 @@ async function runJson(env: AiEnv, system: string, user: string, schema: unknown
       { role: "user", content: user },
     ],
     response_format: { type: "json_schema", json_schema: schema },
-    max_tokens: 3072,
+    max_tokens: 4096,
   } as never)) as { response?: unknown };
 
-  let payload: unknown = result?.response ?? result;
+  const payload: unknown = result?.response ?? result;
   if (typeof payload === "string") {
-    const text = payload;
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      const match = text.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("AI did not return JSON");
-      payload = JSON.parse(match[0]);
-    }
+    return parseLenient(payload);
   }
   return payload;
 }
