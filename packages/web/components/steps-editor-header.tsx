@@ -75,7 +75,7 @@ export function StepsEditorHeader({
 }: StepsEditorHeaderProps) {
   return (
     <div className="flex-none flex items-center justify-between px-4 py-1.5 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10 gap-2">
-      <div className="flex items-center gap-2 flex-1 justify-end">
+      <div className="flex items-center gap-2 flex-1 justify-start">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button

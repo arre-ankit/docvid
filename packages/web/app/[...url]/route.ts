@@ -3,8 +3,8 @@ import { type NextRequest, NextResponse } from "next/server";
 /**
  * URL-hack shortcut: prefix any docs URL with the app domain to turn it into a
  * lesson, e.g.
- *   tutora.app/developers.openai.com/api/docs/guides/audio
- *   tutora.app/https://react.dev/reference/react/useEffect
+ *   DocVid.app/developers.openai.com/api/docs/guides/audio
+ *   DocVid.app/https://react.dev/reference/react/useEffect
  * We reconstruct the URL from the path (+ any query string) and redirect to the
  * Teach page, which auto-starts generation and lands on the lesson.
  *

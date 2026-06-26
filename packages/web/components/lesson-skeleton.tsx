@@ -62,7 +62,7 @@ function GenerationProgress() {
 /**
  * Loading skeleton that mirrors the /learn lesson layout (left step list + right
  * canvas player). Shown while a lesson is being generated from a deep link
- * (the tutora.app/<docs-url> URL-hack), so the user sees the shape of what's
+ * (the DocVid.app/<docs-url> URL-hack), so the user sees the shape of what's
  * coming instead of the generator form.
  *
  * Surfaces use border + tinted fills (not bare `bg-muted`) so the panels stay

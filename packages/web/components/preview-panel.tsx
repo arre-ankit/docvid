@@ -1,12 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ResizablePanel } from "@/components/ui/resizable";
 import { CanvasPreview } from "./canvas-preview";
 import { PlayerControls } from "./player-controls";
+import { PLAYER_SHORTCUTS, type PlayerShortcutId } from "./keyboard-shortcuts";
 import type { AnimationType, TokenFlowPreset } from "@/app/lib/magicMove/types";
 import type { RenderTheme } from "@/app/lib/magicMove/codeLayout";
 import type { ExportFormat } from "@/app/lib/video/types";
+
+// How far an arrow-key seek jumps.
+const SEEK_STEP_MS = 2000;
 
 interface PreviewPanelProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -121,6 +125,44 @@ export function PreviewPanel({
     if (document.fullscreenElement) void document.exitFullscreen();
     else void containerRef.current?.requestFullscreen?.();
   }, []);
+
+  // Map each shortcut id (from the shared PLAYER_SHORTCUTS list that the header
+  // hints also render) to its action, so the bindings and the on-screen hints
+  // can never drift apart.
+  const actions = useMemo<Record<PlayerShortcutId, () => void>>(
+    () => ({
+      playPause: onPlayPause,
+      mute: onSoundToggle,
+      fullscreen: onToggleFullscreen,
+      restart: onReset,
+      back: () => onSeek(Math.max(0, playheadMs - SEEK_STEP_MS)),
+      forward: () => onSeek(Math.min(totalMs, playheadMs + SEEK_STEP_MS)),
+    }),
+    [onPlayPause, onSoundToggle, onToggleFullscreen, onReset, onSeek, playheadMs, totalMs],
+  );
+
+  useEffect(() => {
+    const isTypingTarget = (el: EventTarget | null) => {
+      const node = el as HTMLElement | null;
+      if (!node) return false;
+      return (
+        node.tagName === "INPUT" ||
+        node.tagName === "TEXTAREA" ||
+        node.isContentEditable === true
+      );
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Don't hijack typing or browser/OS shortcuts.
+      if (isTypingTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
+      const key = e.key.toLowerCase();
+      const match = PLAYER_SHORTCUTS.find((s) => (s.keys as readonly string[]).includes(key));
+      if (!match) return;
+      e.preventDefault();
+      actions[match.id]();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [actions]);
 
   return (
     <ResizablePanel
