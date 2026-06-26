@@ -1,66 +1,207 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { GitHubIcon, TwitterIcon } from "./ui/icons";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { ArrowRight, Sun, Moon } from "lucide-react";
 import { Logo } from "./logo";
+import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
 import { Separator } from "./ui/separator";
+import { GitHubIcon, TwitterIcon } from "./ui/icons";
+import { cn } from "@/lib/utils";
 
-export async function Header() {
+/** Marketing nav links shown in the centre of the bar (home only). */
+const NAV_LINKS = [
+  { label: "How it Works", href: "/#how" },
+  { label: "Examples", href: "/#examples" },
+  { label: "Roadmap", href: "/#roadmap" },
+  { label: "Blog", href: "/#blog" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Contact", href: "/#contact" },
+];
+
+// At the top of the page the bar is a light frosted glass that lets the page
+// gradient through. Once scrolled it collapses into a compact island floating
+// over content, so it goes (near-)opaque to read as the only thing on top
+// instead of a translucent smudge over whatever it overlaps.
+const GLASS_TOP =
+  "bg-[#2c3b1f]/35 backdrop-blur-xl border border-white/15 " +
+  "shadow-[0_10px_40px_-12px_rgba(0,0,0,0.45)] " +
+  "supports-[backdrop-filter]:bg-[#2c3b1f]/30";
+const GLASS_SCROLLED =
+  "bg-[#1f2c15] border border-white/10 " +
+  "shadow-[0_16px_50px_-12px_rgba(0,0,0,0.6)]";
+
+export function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const isPlayer = pathname?.startsWith("/learn");
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    // The app shell (`h-screen` + flex) scrolls inside an inner container, not
+    // the window — so a plain window scroll listener never fires. A capture-phase
+    // document listener catches scroll from *any* scrolling element.
+    const onScroll = (e?: Event) => {
+      const target = e?.target;
+      const top =
+        window.scrollY ||
+        document.documentElement.scrollTop ||
+        (target instanceof HTMLElement ? target.scrollTop : 0) ||
+        0;
+      setScrolled(top > 8);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("scroll", onScroll, {
+      capture: true,
+      passive: true,
+    });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("scroll", onScroll, { capture: true });
+    };
+  }, []);
+
+  // Everywhere outside the marketing home page uses the plain app header.
+  if (!isHome) return <SimpleHeader isPlayer={!!isPlayer} />;
+
   return (
-    <nav className="w-full bg-background border-b border-border px-4 sm:px-6 py-1.5 sm:py-2 z-[9999] sticky top-0">
-      <div className=" mx-auto flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <Logo className="text-xl sm:text-2xl" />
-          <h1 className="text-base sm:text-xl font-sans font-bold tracking-tight text-foreground">
-            Tutora
-          </h1>
-        </Link>
+    <nav
+      className={cn(
+        "sticky top-0 z-[9999] w-full px-3 pt-3 transition-all duration-300 ease-out sm:px-5 sm:pt-4",
+        scrolled
+          ? "pointer-events-none -translate-y-full opacity-0"
+          : "translate-y-0 opacity-100",
+      )}
+    >
+      {/* Full-width bar — stays large at every scroll position. */}
+      <div className="relative mx-auto max-w-7xl text-white">
+        {/* single pill — translucent at the top, solid once scrolled */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-0 rounded-full transition-colors duration-500 ease-out",
+            scrolled ? GLASS_SCROLLED : GLASS_TOP,
+          )}
+        />
 
-        {/* Right side - Nav + Social Links + Theme Toggle */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="relative flex h-14 items-center justify-between sm:h-16">
+          {/* ---------- Left: logo ---------- */}
           <Link
-            href="/teach"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            href="/"
+            className="flex h-full items-center gap-2.5 rounded-full px-5 sm:px-6"
+            aria-label="DocVid — home"
           >
-            Create a lesson
+            <Logo className="text-xl sm:text-2xl" />
+            <span className="hidden text-base font-bold tracking-tight sm:inline sm:text-xl">
+              DocVid
+            </span>
           </Link>
-          <Separator orientation="vertical" className="h-6 w-px" />
-          {/* Social Links */}
-          <Link
-            href="https://github.com/kostyniuk/docvid"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="GitHub"
+
+          {/* ---------- Centre: nav links ---------- */}
+          <div
+            className={cn(
+              "absolute left-1/2 hidden -translate-x-1/2 items-center transition-all duration-500 ease-out lg:flex",
+              scrolled
+                ? "pointer-events-none -translate-y-1 opacity-0"
+                : "translate-y-0 opacity-100",
+            )}
           >
-            <GitHubIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Link>
-          <Link
-            href="https://x.com/costiniuc00"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Twitter"
-          >
-            <TwitterIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Link>
-          
-          {/* Separator */}
-          <Separator orientation="vertical" className="h-6 w-px" />
-          
-          {/* Theme Toggle */}
-          <ThemeToggle />
+            <div className="flex items-center gap-7 xl:gap-9">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="whitespace-nowrap text-sm font-semibold text-white/80 transition-colors hover:text-white xl:text-[15px]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* ---------- Right: theme toggle + Login (black) ---------- */}
+          <div className="flex h-full items-center gap-1.5 p-1.5 sm:gap-2 sm:p-2">
+            <GlassThemeToggle />
+            <Link
+              href="/teach"
+              className="inline-flex h-full items-center gap-1.5 rounded-full bg-black px-5 text-sm font-bold text-white shadow-sm ring-1 ring-white/10 transition-transform hover:scale-[1.03] active:scale-95 sm:px-7 sm:text-[15px]"
+            >
+              Login
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
   );
 }
 
-// <header className="flex-none h-14 border-b flex items-center justify-between px-4 bg-background z-20">
+/** White-on-glass theme toggle for the marketing header. */
+function GlassThemeToggle() {
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-//   <div className="flex items-center gap-4">
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      aria-label="Toggle theme"
+      className="grid h-9 w-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      {mounted && resolvedTheme === "dark" ? (
+        <Sun className="h-[18px] w-[18px]" />
+      ) : (
+        <Moon className="h-[18px] w-[18px]" />
+      )}
+    </button>
+  );
+}
 
-//
-//
-//   </div>
-// </header>
+/** Plain app header used inside the player and other non-marketing routes. */
+function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
+  return (
+    <nav className="sticky top-0 z-[9999] w-full border-b border-border bg-background px-4 py-1.5 sm:px-6 sm:py-2">
+      <div className="mx-auto flex items-center justify-between gap-4">
+        {/* Logo */}
+        <Link href="/" className="flex flex-shrink-0 items-center gap-2">
+          <Logo className="text-xl sm:text-2xl" />
+          <h1 className="font-sans text-base font-bold tracking-tight text-foreground sm:text-xl">
+            DocVid
+          </h1>
+        </Link>
+
+        {/* Player keyboard-shortcut hints (only on the /learn player route) */}
+        {isPlayer && <HeaderShortcuts />}
+
+        {/* Right: social links + theme toggle */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link
+            href="https://github.com/kostyniuk/docvid"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="GitHub"
+          >
+            <GitHubIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Link>
+          <Link
+            href="https://x.com/costiniuc00"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Twitter"
+          >
+            <TwitterIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Link>
+          <Separator orientation="vertical" className="h-6 w-px" />
+          <ThemeToggle />
+        </div>
+      </div>
+    </nav>
+  );
+}
