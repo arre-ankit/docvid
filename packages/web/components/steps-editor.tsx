@@ -86,23 +86,10 @@ export function StepsEditor({
       className="flex flex-col h-full bg-muted/10 overflow-hidden"
     >
       <StepsEditorHeader
-        stepCount={steps.length}
         selectedLang={selectedLang}
         onLangChange={onLangChange}
         theme={theme}
         onThemeChange={onThemeChange}
-        showLineNumbers={showLineNumbers}
-        onShowLineNumbersChange={onShowLineNumbersChange}
-        startLine={startLine}
-        onStartLineChange={onStartLineChange}
-        fps={fps}
-        onFpsChange={onFpsChange}
-        startHoldMs={startHoldMs}
-        onStartHoldMsChange={onStartHoldMsChange}
-        betweenHoldMs={betweenHoldMs}
-        onBetweenHoldMsChange={onBetweenHoldMsChange}
-        endHoldMs={endHoldMs}
-        onEndHoldMsChange={onEndHoldMsChange}
         onAddStep={onAddStep}
         hideAddStep
       />

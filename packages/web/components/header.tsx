@@ -1,17 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowRight, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { Logo } from "./logo";
 import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
 import { Separator } from "./ui/separator";
-import { GitHubIcon, TwitterIcon } from "./ui/icons";
+import { GitHubIcon, LinkedInIcon, TwitterIcon } from "./ui/icons";
+import { AuthMenu } from "./auth-menu";
 import { cn } from "@/lib/utils";
 
+const SOCIAL_LINKS = [
+  { href: "https://github.com/arre-ankit", label: "GitHub", Icon: GitHubIcon },
+  {
+    href: "https://www.linkedin.com/in/arre-ankit",
+    label: "LinkedIn",
+    Icon: LinkedInIcon,
+  },
+  { href: "https://x.com/arre_ankit", label: "X", Icon: TwitterIcon },
+] as const;
+
+function SocialLinks({
+  className,
+  iconClassName,
+}: {
+  className?: string;
+  iconClassName?: string;
+}) {
+  return (
+    <>
+      {SOCIAL_LINKS.map(({ href, label, Icon }) => (
+        <Link
+          key={href}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={className}
+          aria-label={label}
+        >
+          <Icon className={iconClassName} />
+        </Link>
+      ))}
+    </>
+  );
+}
 /** Marketing nav links shown in the centre of the bar (home only). */
 const NAV_LINKS = [
   { label: "How it Works", href: "/#how" },
@@ -37,10 +72,13 @@ const GLASS_SCROLLED =
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const isLogin = pathname === "/login";
   const isPlayer = pathname?.startsWith("/learn");
   const isHome = pathname === "/";
 
   useEffect(() => {
+    if (!isHome) return;
+
     // The app shell (`h-screen` + flex) scrolls inside an inner container, not
     // the window — so a plain window scroll listener never fires. A capture-phase
     // document listener catches scroll from *any* scrolling element.
@@ -63,7 +101,9 @@ export function Header() {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("scroll", onScroll, { capture: true });
     };
-  }, []);
+  }, [isHome]);
+
+  if (isLogin) return null;
 
   // Everywhere outside the marketing home page uses the plain app header.
   if (!isHome) return <SimpleHeader isPlayer={!!isPlayer} />;
@@ -95,7 +135,7 @@ export function Header() {
             className="flex h-full items-center gap-2.5 rounded-full px-5 sm:px-6"
             aria-label="DocVid — home"
           >
-            <Logo className="text-xl sm:text-2xl" />
+            <Logo className="text-xl sm:text-2xl text-white" />
             <span className="hidden text-base font-bold tracking-tight sm:inline sm:text-xl">
               DocVid
             </span>
@@ -123,16 +163,18 @@ export function Header() {
             </div>
           </div>
 
-          {/* ---------- Right: theme toggle + Login (black) ---------- */}
+          {/* ---------- Right: social + theme toggle + auth ---------- */}
           <div className="flex h-full items-center gap-1.5 p-1.5 sm:gap-2 sm:p-2">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <SocialLinks
+                className="text-white/70 transition-colors hover:text-white"
+                iconClassName="h-4 w-4"
+              />
+            </div>
             <GlassThemeToggle />
-            <Link
-              href="/teach"
-              className="inline-flex h-full items-center gap-1.5 rounded-full bg-black px-5 text-sm font-bold text-white shadow-sm ring-1 ring-white/10 transition-transform hover:scale-[1.03] active:scale-95 sm:px-7 sm:text-[15px]"
-            >
-              Login
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <Suspense fallback={<div className="h-9 w-16" />}>
+              <AuthMenu variant="marketing" />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -169,7 +211,7 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
       <div className="mx-auto flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <Logo className="text-xl sm:text-2xl" colour="#000000" />
+          <Logo className="text-xl sm:text-2xl" />
           <h1 className="font-sans text-base font-bold tracking-tight text-foreground sm:text-xl">
             DocVid
           </h1>
@@ -178,28 +220,15 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
         {/* Player keyboard-shortcut hints (only on the /learn player route) */}
         {isPlayer && <HeaderShortcuts />}
 
-        {/* Right: social links + theme toggle */}
+        {/* Right: social links + theme toggle + auth */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <Link
-            href="https://github.com/kostyniuk/docvid"
-            target="_blank"
-            rel="noopener noreferrer"
+          <SocialLinks
             className="text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="GitHub"
-          >
-            <GitHubIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Link>
-          <Link
-            href="https://x.com/costiniuc00"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Twitter"
-          >
-            <TwitterIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Link>
+            iconClassName="h-4 w-4 sm:h-5 sm:w-5"
+          />
           <Separator orientation="vertical" className="h-6 w-px" />
           <ThemeToggle />
+          <AuthMenu variant="app" />
         </div>
       </div>
     </nav>

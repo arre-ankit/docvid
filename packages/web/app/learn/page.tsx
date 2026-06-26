@@ -52,6 +52,7 @@ import { generateTypingAudioTrack } from "../lib/audio/generateTypingAudioTrack"
 import { ResizableHandle, ResizablePanelGroup } from "@/components/ui/resizable";
 import { StepsEditor } from "@/components/steps-editor";
 import { PreviewPanel } from "@/components/preview-panel";
+import { LessonCustomizeProvider } from "@/components/lesson-customize-gate";
 
 // Background padding (px) used in narrated lesson mode — roomy enough that the
 // caption sits in the band below the code card without overlapping it.
@@ -1353,7 +1354,8 @@ function LearnPlayer() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
+    <LessonCustomizeProvider>
+      <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
       {lessonAudioUrl && (
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio ref={audioRef} src={lessonAudioUrl} preload="auto" className="hidden" />
@@ -1476,7 +1478,8 @@ function LearnPlayer() {
           }
         />
       </ResizablePanelGroup>
-    </div>
+      </div>
+    </LessonCustomizeProvider>
   );
 }
 

@@ -17,12 +17,18 @@ import {
 
 import { LessonSkeleton } from "@/components/lesson-skeleton";
 
-import type { LessonStatus } from "../lib/teach/types";
+import type { Lesson, LessonStatus } from "../lib/teach/types";
 import { LESSON_STORAGE_PREFIX } from "../lib/teach/types";
 import { LESSON_VOICES as VOICES, DEFAULT_VOICE } from "../lib/teach/voices";
+import { storeClaimToken } from "@/lib/claim-lesson";
+import { CustomizeLockIcon } from "@/components/lesson-customize-gate";
+import { useVoiceCustomize } from "@/components/voice-customize-gate";
 
 const POLL_MS = 3000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
+const PENDING_GENERATION_KEY = "docvid_pending_generation";
+
+type PendingGeneration = { id: string; startedAt: number };
 
 // Brand palette.
 const GREEN = "#007A55";
@@ -45,6 +51,7 @@ const DOC_EXAMPLES = [
 function TeachInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { canCustomize, gateVoiceChange } = useVoiceCustomize();
   const [prompt, setPrompt] = useState("");
   const [url, setUrl] = useState("");
   // Language is auto-detected from the prompt/docs; we just send a sane default.
@@ -54,6 +61,8 @@ function TeachInner() {
   const [phase, setPhase] = useState<"idle" | "generating" | "done" | "error">("idle");
   const [statusText, setStatusText] = useState("");
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoStartedRef = useRef(false);
+  const resumedRef = useRef(false);
 
   // Deep-link arrivals (the tutora.app/<docs-url> URL-hack) skip the generator
   // form entirely: we show a lesson-shaped loading skeleton until /learn opens.
@@ -66,13 +75,120 @@ function TeachInner() {
     pollRef.current = null;
   }, []);
 
+  const openLesson = useCallback(
+    (id: string, lesson: Lesson) => {
+      try {
+        sessionStorage.setItem(LESSON_STORAGE_PREFIX + id, JSON.stringify(lesson));
+      } catch {
+        /* editor will refetch if sessionStorage is unavailable */
+      }
+      sessionStorage.removeItem(PENDING_GENERATION_KEY);
+      // replace so browser back skips the loading teach page
+      router.replace(`/learn?lesson=${encodeURIComponent(id)}`);
+    },
+    [router],
+  );
+
+  const poll = useCallback(
+    (id: string, startedAt: number) => {
+      const tick = async () => {
+        try {
+          const res = await fetch(`/api/teach/${id}`);
+          const data = (await res.json()) as LessonStatus;
+
+          if (data.status === "complete") {
+            stopPolling();
+            setStatusText("Opening editor…");
+            openLesson(id, data.lesson);
+            return;
+          }
+          if (data.status === "error") {
+            stopPolling();
+            sessionStorage.removeItem(PENDING_GENERATION_KEY);
+            setPhase("error");
+            setStatusText(data.error || "Generation failed. Please try again.");
+            return;
+          }
+          if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+            stopPolling();
+            sessionStorage.removeItem(PENDING_GENERATION_KEY);
+            setPhase("error");
+            setStatusText("Timed out waiting for the lesson.");
+            return;
+          }
+          setStatusText("Generating code steps and narration… this usually takes ~20–40s.");
+          pollRef.current = setTimeout(tick, POLL_MS);
+        } catch {
+          setPhase("error");
+          setStatusText("Network error while checking status.");
+        }
+      };
+      tick();
+    },
+    [openLesson, stopPolling],
+  );
+
+  const resumeOrRedirectPending = useCallback((): boolean => {
+    if (resumedRef.current) return true;
+    const raw = sessionStorage.getItem(PENDING_GENERATION_KEY);
+    if (!raw) return false;
+
+    let pending: PendingGeneration;
+    try {
+      pending = JSON.parse(raw) as PendingGeneration;
+    } catch {
+      sessionStorage.removeItem(PENDING_GENERATION_KEY);
+      return false;
+    }
+
+    resumedRef.current = true;
+
+    try {
+      const cached = sessionStorage.getItem(LESSON_STORAGE_PREFIX + pending.id);
+      if (cached) {
+        router.replace(`/learn?lesson=${encodeURIComponent(pending.id)}`);
+        return true;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    setPhase("generating");
+    setStatusText("Resuming generation…");
+    poll(pending.id, pending.startedAt);
+    return true;
+  }, [poll, router]);
+
   useEffect(() => () => stopPolling(), [stopPolling]);
+
+  // bfcache restore can leave stale generating UI after browser back
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      stopPolling();
+      resumedRef.current = false;
+      if (resumeOrRedirectPending()) return;
+      setPhase("idle");
+      setStatusText("");
+      // drop stale ?prompt= / ?url= so back navigation doesn't show an endless skeleton
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("url") || params.get("prompt")) {
+        router.replace("/teach");
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [resumeOrRedirectPending, router, stopPolling]);
+
+  // Resume in-flight generation, or redirect if already complete
+  useEffect(() => {
+    resumeOrRedirectPending();
+  }, [resumeOrRedirectPending]);
 
   // Deep-link / URL-hack: ?url= (and optional ?prompt=) auto-starts generation
   // (e.g. arriving from tutora.app/<docs-url>). Runs once.
-  const autoStartedRef = useRef(false);
   useEffect(() => {
-    if (autoStartedRef.current) return;
+    if (autoStartedRef.current || resumedRef.current) return;
     const urlParam = searchParams.get("url");
     const promptParam = searchParams.get("prompt");
     const voiceParam = searchParams.get("voice");
@@ -88,47 +204,6 @@ function TeachInner() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-
-  const poll = useCallback(
-    (id: string, startedAt: number) => {
-      const tick = async () => {
-        try {
-          const res = await fetch(`/api/teach/${id}`);
-          const data = (await res.json()) as LessonStatus;
-
-          if (data.status === "complete") {
-            // Cache the lesson and jump straight into the editor (with narration audio).
-            try {
-              sessionStorage.setItem(LESSON_STORAGE_PREFIX + id, JSON.stringify(data.lesson));
-            } catch {
-              /* editor will refetch if sessionStorage is unavailable */
-            }
-            setPhase("done");
-            setStatusText("Opening editor…");
-            router.push(`/learn?lesson=${encodeURIComponent(id)}`);
-            return;
-          }
-          if (data.status === "error") {
-            setPhase("error");
-            setStatusText(data.error || "Generation failed. Please try again.");
-            return;
-          }
-          if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
-            setPhase("error");
-            setStatusText("Timed out waiting for the lesson.");
-            return;
-          }
-          setStatusText("Generating code steps and narration… this usually takes ~20–40s.");
-          pollRef.current = setTimeout(tick, POLL_MS);
-        } catch {
-          setPhase("error");
-          setStatusText("Network error while checking status.");
-        }
-      };
-      tick();
-    },
-    [router],
-  );
 
   const onGenerate = async (override?: {
     url?: string;
@@ -153,15 +228,23 @@ function TeachInner() {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(err.error || `Request failed (${res.status})`);
       }
-      const { id } = (await res.json()) as { id: string };
-      poll(id, Date.now());
+      const payload = (await res.json()) as { id: string; claimToken?: string };
+      if (payload.claimToken) {
+        storeClaimToken(payload.id, payload.claimToken);
+      }
+      const startedAt = Date.now();
+      sessionStorage.setItem(
+        PENDING_GENERATION_KEY,
+        JSON.stringify({ id: payload.id, startedAt } satisfies PendingGeneration),
+      );
+      poll(payload.id, startedAt);
     } catch (e) {
       setPhase("error");
       setStatusText(e instanceof Error ? e.message : "Failed to start generation.");
     }
   };
 
-  const busy = phase === "generating" || phase === "done";
+  const busy = phase === "generating";
   const canGenerate = !busy && !!prompt.trim();
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -242,18 +325,28 @@ function TeachInner() {
 
           {/* toolbar */}
           <div className="mt-1.5 flex items-center gap-1 px-1.5 pb-0.5">
-            {/* voice */}
-            <Select value={voice} onValueChange={setVoice} disabled={busy}>
+            {/* voice — sign in to change from default */}
+            <Select
+              value={voice}
+              onValueChange={(v) => gateVoiceChange(voice, v, setVoice)}
+              disabled={busy}
+            >
               <SelectTrigger className="h-9 w-auto gap-1.5 rounded-lg border-0 bg-transparent px-2.5 text-xs text-white/70 hover:bg-white/10 hover:text-white focus:ring-0 focus:ring-offset-0">
                 <AudioLines className="h-4 w-4 opacity-80" />
                 <SelectValue placeholder="Voice" />
               </SelectTrigger>
               <SelectContent>
-                {VOICES.map((v) => (
-                  <SelectItem key={v.value} value={v.value}>
-                    {v.label}
-                  </SelectItem>
-                ))}
+                {VOICES.map((v) => {
+                  const locked = !canCustomize && v.value !== voice;
+                  return (
+                    <SelectItem key={v.value} value={v.value} className={cn(locked && "opacity-75")}>
+                      <span className="flex w-full items-center gap-2">
+                        {v.label}
+                        {locked && <CustomizeLockIcon />}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 

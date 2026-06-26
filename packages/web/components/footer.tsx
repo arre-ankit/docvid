@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { GitHubIcon, TwitterIcon } from "./ui/icons";
 import { Logo } from "./logo";
-import { FluidGradientText } from "./fluid-gradient-text";
 
 const LIME = "#CBFF2E";
 const GREEN = "#007A55";
@@ -25,7 +23,7 @@ export function Footer() {
           <div className="space-y-6">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <Logo className="text-2xl" />
+              <Logo className="text-2xl text-white" />
               <h2 className="text-xl font-bold">DocVid</h2>
             </div>
 
@@ -33,9 +31,6 @@ export function Footer() {
             <div className="space-y-2">
               <p className="text-lg sm:text-xl font-medium text-white/90">
                 "Docs in, knowledge out in video form."
-              </p>
-              <p className="text-sm text-white/60">
-                — AI-powered coding education that clicks.
               </p>
             </div>
 
@@ -45,7 +40,7 @@ export function Footer() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-black transition-transform hover:scale-[1.02]"
               style={{ backgroundColor: LIME }}
             >
-              Get started free
+              Login
               <span className="text-lg">→</span>
             </Link>
           </div>
@@ -126,7 +121,7 @@ export function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    href="https://x.com/costiniuc00"
+                    href="https://x.com/arre_ankit"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-white/80 hover:text-white transition-colors flex items-center gap-2"
@@ -136,7 +131,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="https://github.com/kostyniuk/docvid"
+                    href="https://github.com/arre-ankit"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-white/80 hover:text-white transition-colors flex items-center gap-2"
@@ -146,7 +141,9 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="https://www.linkedin.com/in/arre-ankit"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-white/80 hover:text-white transition-colors"
                   >
                     LinkedIn

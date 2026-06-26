@@ -10,12 +10,22 @@
   },
   "observability": { "enabled": true },
 
-  // Service binding to the AI backend Worker (deployed separately from workers/ai-worker).
-  // In `next dev` this binding is absent, so the API routes fall back to AI_BACKEND_URL.
   "services": [{ "binding": "AI_BACKEND", "service": "docvid-ai" }],
 
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "docvid-db",
+      "database_id": "9b65ccb9-d3bc-4f8b-b033-8fe36977126b",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+
+  "kv_namespaces": [{ "binding": "KV", "id": "e6d8c7b2695b4621b14fffbc715897fc" }],
+
   "vars": {
-    // Local-dev fallback target for the AI backend (wrangler dev defaults to :8787).
-    "AI_BACKEND_URL": "http://localhost:8787"
+    "AI_BACKEND_URL": "http://localhost:8787",
+    "BETTER_AUTH_URL": "http://localhost:3000",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "http://localhost:3000"
   }
 }

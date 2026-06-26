@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LESSON_VOICES as VOICES, DEFAULT_VOICE } from "@/app/lib/teach/voices";
+import { CustomizeLockIcon } from "@/components/lesson-customize-gate";
+import { useVoiceCustomize } from "@/components/voice-customize-gate";
 import {
   siReact,
   siNextdotjs,
@@ -191,6 +193,7 @@ const EXAMPLES = [
 /* Doc-burst hero: logos spill over a dark chat box that kicks off generation. */
 function DocsCard() {
   const router = useRouter();
+  const { canCustomize, gateVoiceChange } = useVoiceCustomize();
   const [value, setValue] = useState("");
   const [voice, setVoice] = useState(DEFAULT_VOICE);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -248,18 +251,27 @@ function DocsCard() {
         />
 
         <div className="mt-1.5 flex items-center gap-1 px-1.5 pb-0.5">
-          {/* voice */}
-          <Select value={voice} onValueChange={setVoice}>
+          {/* voice — sign in to change from default */}
+          <Select
+            value={voice}
+            onValueChange={(v) => gateVoiceChange(voice, v, setVoice)}
+          >
             <SelectTrigger className="h-9 w-auto gap-1.5 rounded-lg border-0 bg-transparent px-2.5 text-xs text-white/70 hover:bg-white/10 hover:text-white focus:ring-0 focus:ring-offset-0">
               <AudioLines className="h-4 w-4 opacity-80" />
               <SelectValue placeholder="Voice" />
             </SelectTrigger>
             <SelectContent>
-              {VOICES.map((v) => (
-                <SelectItem key={v.value} value={v.value}>
-                  {v.label}
-                </SelectItem>
-              ))}
+              {VOICES.map((v) => {
+                const locked = !canCustomize && v.value !== voice;
+                return (
+                  <SelectItem key={v.value} value={v.value} className={cn(locked && "opacity-75")}>
+                    <span className="flex w-full items-center gap-2">
+                      {v.label}
+                      {locked && <CustomizeLockIcon />}
+                    </span>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 

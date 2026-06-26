@@ -18,6 +18,14 @@ import { BackgroundCombobox } from "@/components/background-combobox";
 import { LESSON_VOICES } from "@/app/lib/teach/voices";
 import type { ExportFormat } from "@/app/lib/video/types";
 import { ShareButton } from "@/components/share-button";
+import { CustomizeGate, CustomizeLockIcon, useLessonCustomize } from "@/components/lesson-customize-gate";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 /** Format milliseconds as m:ss (e.g. 148979 -> "2:29"). */
@@ -91,6 +99,7 @@ export function PlayerControls({
   showLineNumbers,
   onShowLineNumbersChange,
 }: PlayerControlsProps) {
+  const { canCustomize, gateAction, promptSignIn } = useLessonCustomize();
   const [displayPlayheadMs, setDisplayPlayheadMs] = useState(playheadMs);
   const displayPlayheadRef = useRef(playheadMs);
   const rafRef = useRef<number | null>(null);
@@ -139,9 +148,6 @@ export function PlayerControls({
   }, []);
 
   useEffect(() => {
-    // Lesson mode: the parent updates playheadMs every frame from the narration
-    // audio (the master clock), so mirror it directly — don't run a separate
-    // smoothing clock that would fight seeks and drift from the real audio.
     if (!isPlaying || lessonMode) {
       displayPlayheadRef.current = playheadMs;
       setDisplayPlayheadMs(playheadMs);
@@ -187,6 +193,31 @@ export function PlayerControls({
       lastFrameRef.current = null;
     };
   }, [isPlaying, playheadMs, totalMs, lessonMode]);
+
+  const voiceControl = lessonMode && onRevoice && (
+    <Select
+      value={lessonVoice}
+      onValueChange={(v) => gateAction(() => onRevoice(v))}
+      disabled={isRevoicing}
+    >
+      <SelectTrigger className="h-8 w-[8.5rem] text-xs">
+        <SelectValue placeholder="Voice" />
+      </SelectTrigger>
+      <SelectContent>
+        {LESSON_VOICES.map((v) => {
+          const locked = !canCustomize && v.value !== lessonVoice;
+          return (
+            <SelectItem key={v.value} value={v.value} className={cn(locked && "opacity-75")}>
+              <span className="flex w-full items-center gap-2">
+                {v.label}
+                {locked && <CustomizeLockIcon />}
+              </span>
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
+  );
 
   return (
     <div
@@ -257,11 +288,17 @@ export function PlayerControls({
           >
             <RotateCcw className="w-4 h-4" />
           </Button>
+
           {onShowLineNumbersChange && (
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground" title="Show line numbers">
-              <span className="whitespace-nowrap">Line numbers</span>
-              <Switch checked={!!showLineNumbers} onCheckedChange={onShowLineNumbersChange} />
-            </label>
+            <CustomizeGate title="Sign in to toggle line numbers">
+              <label
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                title="Show line numbers"
+              >
+                <span className="whitespace-nowrap">Line numbers</span>
+                <Switch checked={!!showLineNumbers} onCheckedChange={onShowLineNumbersChange} />
+              </label>
+            </CustomizeGate>
           )}
 
           {lessonMode && (onBackgroundThemeIdChange || onCaptionThemeIdChange) && (
@@ -274,6 +311,8 @@ export function PlayerControls({
               <BackgroundCombobox
                 backgroundThemeId={backgroundThemeId ?? "none"}
                 onBackgroundThemeIdChange={onBackgroundThemeIdChange}
+                customizeLocked={!canCustomize}
+                onLockedSelect={promptSignIn}
               />
             </div>
           )}
@@ -283,27 +322,15 @@ export function PlayerControls({
               <BackgroundCombobox
                 backgroundThemeId={captionThemeId ?? "none"}
                 onBackgroundThemeIdChange={onCaptionThemeIdChange}
+                customizeLocked={!canCustomize}
+                onLockedSelect={promptSignIn}
               />
             </div>
           )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          {lessonMode && (
-            <button
-              type="button"
-              disabled
-              title="Change the narration voice — coming soon (Pro)"
-              className="inline-flex h-8 w-[8.5rem] cursor-not-allowed items-center justify-between gap-2 rounded-md border border-input bg-transparent px-2.5 text-xs text-muted-foreground opacity-80"
-            >
-              <span className="truncate">
-                {LESSON_VOICES.find((v) => v.value === lessonVoice)?.label ?? "Voice"}
-              </span>
-              <span className="rounded bg-primary/15 px-1 py-px text-[9px] font-semibold uppercase tracking-wide text-primary">
-                Pro
-              </span>
-            </button>
-          )}
+          {voiceControl}
           <Button
             variant="ghost"
             size="icon"
@@ -338,15 +365,17 @@ export function PlayerControls({
                 : "text-muted-foreground",
             )}
           />
-          <Button
-            size="sm"
-            className={cn("min-w-[120px]", isExporting && "opacity-80")}
-            onClick={() => onExport("mp4")}
-            disabled={!canExport || isExporting}
-          >
-            <Download className="w-4 h-4" />
-            {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export"}
-          </Button>
+          <CustomizeGate title="Sign in to export your lesson">
+            <Button
+              size="sm"
+              className={cn("min-w-[120px]", isExporting && "opacity-80")}
+              onClick={() => gateAction(() => onExport("mp4"))}
+              disabled={!canExport || isExporting}
+            >
+              <Download className="w-4 h-4" />
+              {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export"}
+            </Button>
+          </CustomizeGate>
         </div>
       </div>
     </div>
