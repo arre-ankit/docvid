@@ -290,7 +290,7 @@ function DocsCard() {
       <div className="relative z-10 mt-5 space-y-2.5 text-center">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Link2 className="h-3.5 w-3.5" /> Or paste a docs link:
+            <Link2 className="h-3.5 w-3.5" /> docs link:
           </span>
           {EXAMPLES.map((ex) => (
             <button
