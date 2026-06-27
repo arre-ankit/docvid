@@ -60,14 +60,20 @@ function createLocalDb() {
 
 /** Drizzle client — D1 in Workers, local SQLite in plain `next dev`. */
 export async function getDb() {
+  let cloudflareEnv: { DB?: D1Database } | null = null;
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const db = (env as { DB?: D1Database }).DB;
-    if (db) {
-      return drizzle(db, { schema });
-    }
+    cloudflareEnv = env as { DB?: D1Database };
   } catch {
     // Outside the Workers runtime (plain `next dev`).
+  }
+
+  if (cloudflareEnv) {
+    const db = cloudflareEnv.DB;
+    if (!db) {
+      throw new Error("D1 binding DB is not configured");
+    }
+    return drizzle(db, { schema });
   }
 
   if (!localDb) {

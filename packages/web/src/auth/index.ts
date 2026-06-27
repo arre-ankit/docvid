@@ -82,13 +82,9 @@ async function authBuilder() {
   });
 }
 
-let authInstance: Awaited<ReturnType<typeof authBuilder>> | null = null;
-
+/** Build auth per request so Cloudflare `cf` / bindings stay in sync (OpenNext on Workers). */
 export async function initAuth() {
-  if (!authInstance) {
-    authInstance = await authBuilder();
-  }
-  return authInstance;
+  return authBuilder();
 }
 
 /** Static export for Better Auth CLI schema generation. */
