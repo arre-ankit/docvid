@@ -8,45 +8,9 @@ import { Sun, Moon } from "lucide-react";
 import { Logo } from "./logo";
 import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
-import { Separator } from "./ui/separator";
-import { GitHubIcon, LinkedInIcon, TwitterIcon } from "./ui/icons";
 import { AuthMenu } from "./auth-menu";
 import { cn } from "@/lib/utils";
 
-const SOCIAL_LINKS = [
-  { href: "https://github.com/arre-ankit", label: "GitHub", Icon: GitHubIcon },
-  {
-    href: "https://www.linkedin.com/in/arre-ankit",
-    label: "LinkedIn",
-    Icon: LinkedInIcon,
-  },
-  { href: "https://x.com/arre_ankit", label: "X", Icon: TwitterIcon },
-] as const;
-
-function SocialLinks({
-  className,
-  iconClassName,
-}: {
-  className?: string;
-  iconClassName?: string;
-}) {
-  return (
-    <>
-      {SOCIAL_LINKS.map(({ href, label, Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={className}
-          aria-label={label}
-        >
-          <Icon className={iconClassName} />
-        </Link>
-      ))}
-    </>
-  );
-}
 /** Marketing nav links shown in the centre of the bar (home only). */
 const NAV_LINKS = [
   { label: "How it Works", href: "/#how" },
@@ -163,14 +127,8 @@ export function Header() {
             </div>
           </div>
 
-          {/* ---------- Right: social + theme toggle + auth ---------- */}
+          {/* ---------- Right: theme toggle + auth ---------- */}
           <div className="flex h-full items-center gap-1.5 p-1.5 sm:gap-2 sm:p-2">
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <SocialLinks
-                className="text-white/70 transition-colors hover:text-white"
-                iconClassName="h-4 w-4"
-              />
-            </div>
             <GlassThemeToggle />
             <Suspense fallback={<div className="h-9 w-16" />}>
               <AuthMenu variant="marketing" />
@@ -220,13 +178,8 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
         {/* Player keyboard-shortcut hints (only on the /learn player route) */}
         {isPlayer && <HeaderShortcuts />}
 
-        {/* Right: social links + theme toggle + auth */}
+        {/* Right: theme toggle + auth */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <SocialLinks
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            iconClassName="h-4 w-4 sm:h-5 sm:w-5"
-          />
-          <Separator orientation="vertical" className="h-6 w-px" />
           <ThemeToggle />
           <Suspense fallback={<div className="h-9 w-16" />}>
             <AuthMenu variant="app" />
