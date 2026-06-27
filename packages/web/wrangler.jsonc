@@ -8,8 +8,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "observability": { "enabled": true },
-
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
   "services": [{ "binding": "AI_BACKEND", "service": "docvid-ai" }],
 
   "d1_databases": [

@@ -4,7 +4,15 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true },
+    "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
 
   // Workers AI: env.AI.run(model, ...) — generates the lesson (code steps + narration)
   // and synthesizes narration audio (Inworld TTS 2 / MeloTTS).
