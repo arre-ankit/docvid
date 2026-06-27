@@ -228,7 +228,9 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
           />
           <Separator orientation="vertical" className="h-6 w-px" />
           <ThemeToggle />
-          <AuthMenu variant="app" />
+          <Suspense fallback={<div className="h-9 w-16" />}>
+            <AuthMenu variant="app" />
+          </Suspense>
         </div>
       </div>
     </nav>

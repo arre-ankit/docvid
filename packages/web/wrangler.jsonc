@@ -25,7 +25,7 @@
 
   "vars": {
     "AI_BACKEND_URL": "http://localhost:8787",
-    "BETTER_AUTH_URL": "http://localhost:3000",
-    "BETTER_AUTH_TRUSTED_ORIGINS": "http://localhost:3000"
+    "BETTER_AUTH_URL": "https://docvid-web.ankit992827.workers.dev",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://docvid-web.ankit992827.workers.dev"
   }
 }
