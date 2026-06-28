@@ -22,8 +22,7 @@ import type { Lesson, LessonStatus } from "../lib/teach/types";
 import { LESSON_STORAGE_PREFIX } from "../lib/teach/types";
 import { LESSON_VOICES as VOICES, DEFAULT_VOICE } from "../lib/teach/voices";
 import { storeClaimToken } from "@/lib/claim-lesson";
-import { CustomizeLockIcon } from "@/components/lesson-customize-gate";
-import { useVoiceCustomize } from "@/components/voice-customize-gate";
+import { ProLockIcon, useProGate } from "@/components/pro-gate";
 import { GenerationQuota } from "@/components/generation-quota";
 
 const POLL_MS = 3000;
@@ -53,7 +52,7 @@ const DOC_EXAMPLES = [
 function TeachInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { canCustomize, gateVoiceChange } = useVoiceCustomize();
+  const { gateProVoiceChange, isVoiceLocked } = useProGate();
   const [prompt, setPrompt] = useState("");
   const [url, setUrl] = useState("");
   // Language is auto-detected from the prompt/docs; we just send a sane default.
@@ -352,7 +351,7 @@ function TeachInner() {
             {/* voice — sign in to change from default */}
             <Select
               value={voice}
-              onValueChange={(v) => gateVoiceChange(voice, v, setVoice)}
+              onValueChange={(v) => gateProVoiceChange(voice, v, setVoice)}
               disabled={busy}
             >
               <SelectTrigger className="h-9 w-auto gap-1.5 rounded-lg border-0 bg-transparent px-2.5 text-xs text-white/70 hover:bg-white/10 hover:text-white focus:ring-0 focus:ring-offset-0">
@@ -361,12 +360,12 @@ function TeachInner() {
               </SelectTrigger>
               <SelectContent>
                 {VOICES.map((v) => {
-                  const locked = !canCustomize && v.value !== voice;
+                  const locked = isVoiceLocked(v.value);
                   return (
                     <SelectItem key={v.value} value={v.value} className={cn(locked && "opacity-75")}>
                       <span className="flex w-full items-center gap-2">
                         {v.label}
-                        {locked && <CustomizeLockIcon />}
+                        {locked && <ProLockIcon />}
                       </span>
                     </SelectItem>
                   );

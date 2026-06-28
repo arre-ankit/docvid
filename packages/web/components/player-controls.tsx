@@ -10,15 +10,17 @@ import {
   Download,
   Maximize2,
   Minimize2,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { BackgroundCombobox } from "@/components/background-combobox";
-import { LESSON_VOICES } from "@/app/lib/teach/voices";
+import { LESSON_VOICES, DEFAULT_VOICE } from "@/app/lib/teach/voices";
 import type { ExportFormat } from "@/app/lib/video/types";
 import { ShareButton } from "@/components/share-button";
-import { CustomizeGate, CustomizeLockIcon, useLessonCustomize } from "@/components/lesson-customize-gate";
+import { CustomizeGate, useLessonCustomize } from "@/components/lesson-customize-gate";
+import { ProLockIcon, useProGate } from "@/components/pro-gate";
 import {
   Select,
   SelectContent,
@@ -99,7 +101,8 @@ export function PlayerControls({
   showLineNumbers,
   onShowLineNumbersChange,
 }: PlayerControlsProps) {
-  const { canCustomize, gateAction, promptSignIn } = useLessonCustomize();
+  const { canCustomize, promptSignIn } = useLessonCustomize();
+  const { isPro, gateProExport, gateProVoiceChange, isVoiceLocked } = useProGate();
   const [displayPlayheadMs, setDisplayPlayheadMs] = useState(playheadMs);
   const displayPlayheadRef = useRef(playheadMs);
   const rafRef = useRef<number | null>(null);
@@ -197,7 +200,7 @@ export function PlayerControls({
   const voiceControl = lessonMode && onRevoice && (
     <Select
       value={lessonVoice}
-      onValueChange={(v) => gateAction(() => onRevoice(v))}
+      onValueChange={(v) => gateProVoiceChange(lessonVoice ?? DEFAULT_VOICE, v, onRevoice)}
       disabled={isRevoicing}
     >
       <SelectTrigger className="h-8 w-[8.5rem] text-xs">
@@ -205,12 +208,12 @@ export function PlayerControls({
       </SelectTrigger>
       <SelectContent>
         {LESSON_VOICES.map((v) => {
-          const locked = !canCustomize && v.value !== lessonVoice;
+          const locked = isVoiceLocked(v.value);
           return (
             <SelectItem key={v.value} value={v.value} className={cn(locked && "opacity-75")}>
               <span className="flex w-full items-center gap-2">
                 {v.label}
-                {locked && <CustomizeLockIcon />}
+                {locked && <ProLockIcon />}
               </span>
             </SelectItem>
           );
@@ -365,18 +368,19 @@ export function PlayerControls({
                 : "text-muted-foreground",
             )}
           />
-          <CustomizeGate title="Sign in to export your lesson">
-            {/* Export/download is hidden on phones (no practical file export there). */}
-            <Button
-              size="sm"
-              className={cn("hidden min-w-[120px] sm:inline-flex", isExporting && "opacity-80")}
-              onClick={() => gateAction(() => onExport("mp4"))}
-              disabled={!canExport || isExporting}
-            >
-              <Download className="w-4 h-4" />
-              {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export"}
-            </Button>
-          </CustomizeGate>
+          {/* Export is Pro-only. Export/download is hidden on phones (no
+              practical file export there). Non-Pro users are sent to /pricing. */}
+          <Button
+            size="sm"
+            className={cn("hidden min-w-[120px] sm:inline-flex", isExporting && "opacity-80")}
+            onClick={() => gateProExport(() => onExport("mp4"))}
+            disabled={!canExport || isExporting}
+            title="Export your lesson (Pro)"
+          >
+            <Download className="w-4 h-4" />
+            {isExporting ? `${statusText} ${Math.round(exportProgress * 100)}%` : "Export"}
+            {!isExporting && isPro === false && <Lock className="w-3.5 h-3.5 opacity-80" />}
+          </Button>
         </div>
       </div>
     </div>
