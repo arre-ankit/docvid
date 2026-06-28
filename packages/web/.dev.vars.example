@@ -1,6 +1,10 @@
-# Better Auth — required for session signing (32+ chars). Copy to .env.local for `next dev`.
+# Local dev secrets/vars for `next dev`. Copy to `.dev.vars` and fill in.
+# Loaded by OpenNext/wrangler into the Cloudflare `env` (takes precedence over wrangler.jsonc `vars`).
+
+# Better Auth — secret must be 32+ random chars. Keep URL/origin on localhost for local dev.
 BETTER_AUTH_SECRET=replace-with-a-long-random-secret-at-least-32-chars
 BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:3000
 
 # AI backend when not using the Cloudflare service binding
 AI_BACKEND_URL=http://localhost:8787
@@ -10,8 +14,13 @@ AI_BACKEND_URL=http://localhost:8787
 #   http://localhost:3000/api/auth/callback/google
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-
 # GitHub → Settings → Developer settings → OAuth Apps → Authorization callback URL:
 #   http://localhost:3000/api/auth/callback/github
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
+
+# Dodo Payments
+DODO_PAYMENTS_API_KEY=
+DODO_PAYMENTS_WEBHOOK_SECRET=
+# DODO_PAYMENTS_ENVIRONMENT: test_mode or live_mode
+DODO_PAYMENTS_ENVIRONMENT=test_mode

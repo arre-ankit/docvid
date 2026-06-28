@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -6,5 +7,8 @@ const nextConfig: NextConfig = {
   // See https://github.com/opennextjs/opennextjs-cloudflare/issues/1223
   reactCompiler: true,
 };
+
+// Makes Cloudflare bindings + `.dev.vars` available to `getCloudflareContext()` during `next dev`.
+initOpenNextCloudflareForDev();
 
 export default nextConfig;
