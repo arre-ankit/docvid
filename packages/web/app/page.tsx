@@ -1,5 +1,6 @@
 import { Footer } from "@/components/footer";
 import { FlowSection } from "@/components/flow-section";
+import { PricingSection } from "@/components/pricing-section";
 import { FaqSection } from "@/components/faq-section";
 import { TechStackPile } from "@/components/tech-stack-pile";
 import { Hero } from "@/components/hero";
@@ -35,6 +36,7 @@ export default function Page() {
         </div>
 
         <FlowSection />
+        <PricingSection />
         <FaqSection />
         <TechStackPile />
       </div>

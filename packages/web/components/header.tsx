@@ -9,11 +9,13 @@ import { Logo } from "./logo";
 import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthMenu } from "./auth-menu";
+import { UpgradeProPill } from "./upgrade-pro-pill";
 import { cn } from "@/lib/utils";
 
 /** Marketing nav links shown in the centre of the bar (home only). */
 const NAV_LINKS = [
   { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },
 ];
 
@@ -174,8 +176,9 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
         {/* Player keyboard-shortcut hints (only on the /learn player route) */}
         {isPlayer && <HeaderShortcuts />}
 
-        {/* Right: theme toggle + auth */}
+        {/* Right: upgrade CTA (free users) + theme toggle + auth */}
         <div className="flex items-center gap-3 sm:gap-4">
+          <UpgradeProPill />
           <ThemeToggle />
           <Suspense fallback={<div className="h-9 w-16" />}>
             <AuthMenu variant="app" />
