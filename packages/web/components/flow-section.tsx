@@ -61,11 +61,14 @@ function Step({ n, label }: { n: string; label: string }) {
 
 export function FlowSection() {
   return (
-    <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 max-w-7xl">
+    <section
+      id="features"
+      className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 max-w-7xl scroll-mt-24"
+    >
       {/* Eyebrow */}
       <div className="text-center">
         <p className="text-sm font-medium text-muted-foreground">
-           How it works
+          Features
         </p>
         <svg
           aria-hidden="true"

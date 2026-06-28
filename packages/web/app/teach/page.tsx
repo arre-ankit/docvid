@@ -24,6 +24,7 @@ import { LESSON_VOICES as VOICES, DEFAULT_VOICE } from "../lib/teach/voices";
 import { storeClaimToken } from "@/lib/claim-lesson";
 import { CustomizeLockIcon } from "@/components/lesson-customize-gate";
 import { useVoiceCustomize } from "@/components/voice-customize-gate";
+import { GenerationQuota } from "@/components/generation-quota";
 
 const POLL_MS = 3000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -226,8 +227,28 @@ function TeachInner() {
         body: JSON.stringify({ prompt: trimmed, url: trimmedUrl || undefined, language, voice: useVoice }),
       });
       if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error || `Request failed (${res.status})`);
+        const err = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          message?: string;
+        };
+
+        // Quota gates: send the user to the right place instead of just erroring.
+        // Preserve the typed prompt so they can resume after signing in.
+        if (err.error === "login_required") {
+          const resume = new URLSearchParams();
+          if (trimmedUrl) resume.set("url", trimmedUrl);
+          if (trimmed) resume.set("prompt", trimmed);
+          if (useVoice) resume.set("voice", useVoice);
+          const next = `/teach?${resume.toString()}`;
+          router.push(`/login?next=${encodeURIComponent(next)}`);
+          return;
+        }
+        if (err.error === "upgrade_required") {
+          router.push("/pricing");
+          return;
+        }
+
+        throw new Error(err.message || err.error || `Request failed (${res.status})`);
       }
       const payload = (await res.json()) as { id: string; claimToken?: string };
       if (payload.claimToken) {
@@ -378,6 +399,11 @@ function TeachInner() {
               )}
             </button>
           </div>
+        </div>
+
+        {/* free-generation quota indicator (hidden for Pro users) */}
+        <div className="mt-3 flex justify-center">
+          <GenerationQuota />
         </div>
 
         {statusText && (

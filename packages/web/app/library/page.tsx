@@ -261,7 +261,7 @@ export default function LibraryPage() {
         <div>
           <h1 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">My lessons</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Lessons you claimed after signing in appear here.
+            Lessons you generated after signin appear here.
           </p>
         </div>
         <Button asChild className="w-full gap-1.5 sm:w-auto">

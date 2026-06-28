@@ -9,16 +9,14 @@ import { Logo } from "./logo";
 import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthMenu } from "./auth-menu";
+import { UpgradeProPill } from "./upgrade-pro-pill";
 import { cn } from "@/lib/utils";
 
 /** Marketing nav links shown in the centre of the bar (home only). */
 const NAV_LINKS = [
-  { label: "How it Works", href: "/#how" },
-  { label: "Examples", href: "/#examples" },
-  { label: "Roadmap", href: "/#roadmap" },
-  { label: "Blog", href: "/#blog" },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },
-  { label: "Contact", href: "/#contact" },
 ];
 
 // At the top of the page the bar is a light frosted glass that lets the page
@@ -178,8 +176,9 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
         {/* Player keyboard-shortcut hints (only on the /learn player route) */}
         {isPlayer && <HeaderShortcuts />}
 
-        {/* Right: theme toggle + auth */}
+        {/* Right: upgrade CTA (free users) + theme toggle + auth */}
         <div className="flex items-center gap-3 sm:gap-4">
+          <UpgradeProPill />
           <ThemeToggle />
           <Suspense fallback={<div className="h-9 w-16" />}>
             <AuthMenu variant="app" />
