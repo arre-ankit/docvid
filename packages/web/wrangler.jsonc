@@ -41,8 +41,8 @@
 
   "vars": {
     "AI_BACKEND_URL": "http://localhost:8787",
-    "BETTER_AUTH_URL": "https://docvid-web.ankit992827.workers.dev",
-    "BETTER_AUTH_TRUSTED_ORIGINS": "https://docvid-web.ankit992827.workers.dev",
+    "BETTER_AUTH_URL": "https://docvid.in",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://docvid.in,https://www.docvid.in",
     "DODO_PAYMENTS_ENVIRONMENT": "live_mode",
     "DODO_PAYMENTS_SUCCESS_URL": "/library?upgraded=1",
     "DODO_PRO_MONTHLY_PRODUCT_ID": "pdt_0Ni2WG1Wdf06m48SrKMjF"
