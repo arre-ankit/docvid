@@ -36,6 +36,6 @@
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://docvid-web.ankit992827.workers.dev",
     "DODO_PAYMENTS_ENVIRONMENT": "live_mode",
     "DODO_PAYMENTS_SUCCESS_URL": "/library?upgraded=1",
-    "DODO_PRO_MONTHLY_PRODUCT_ID": "pdt_BQsZvVITOkKfEVGYtIQI3"
+    "DODO_PRO_MONTHLY_PRODUCT_ID": "pdt_0Ni2WG1Wdf06m48SrKMjF"
   }
 }
