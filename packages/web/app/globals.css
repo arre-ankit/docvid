@@ -84,7 +84,7 @@
 :root {
   --old-primary: oklch(0.51 0.23 277);
   --radius: 0.625rem;
-  --background: ##F8F6F0;
+  --background: #F8F6F0;
   --foreground: oklch(0.147 0.004 49.25);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
