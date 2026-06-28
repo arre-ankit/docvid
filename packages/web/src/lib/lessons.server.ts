@@ -81,6 +81,12 @@ export async function claimLesson(params: {
   return { claimed: true as const, lessonId: params.lessonId, claimedAt };
 }
 
+/** Lifetime count of lessons a user owns — used to enforce the free quota. */
+export async function countLessonsForUser(userId: string) {
+  const db = await getDb();
+  return db.$count(lessons, eq(lessons.userId, userId));
+}
+
 export async function listLessonsForUser(userId: string, limit = 50) {
   const db = await getDb();
   return db
