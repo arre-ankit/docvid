@@ -58,7 +58,15 @@ export function Footer() {
                     href="/teach"
                     className="text-sm text-white/80 hover:text-white transition-colors"
                   >
-                    Teach with AI
+                    Turn docs into video
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/teach"
+                    className="text-sm text-white/80 hover:text-white transition-colors"
+                  >
+                    Generate a video
                   </Link>
                 </li>
                 <li>

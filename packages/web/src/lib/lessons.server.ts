@@ -15,16 +15,20 @@ function expiresAtFromNow() {
   return new Date(Date.now() + ANON_TTL_MS).toISOString();
 }
 
-export async function createAnonymousLesson(lessonId: string) {
+export async function createAnonymousLesson(lessonId: string, ownerUserId?: string) {
   const db = await getDb();
   const claimToken = nanoid(32);
+  const now = isoNow();
 
   await db.insert(lessons).values({
     id: lessonId,
     status: "running",
     claimToken,
-    createdAt: isoNow(),
+    createdAt: now,
     expiresAt: expiresAtFromNow(),
+    // If the creator is already signed in, own the lesson immediately so it
+    // shows up in their library without needing the post-auth claim step.
+    ...(ownerUserId ? { userId: ownerUserId, claimedAt: now } : {}),
   });
 
   return { claimToken };

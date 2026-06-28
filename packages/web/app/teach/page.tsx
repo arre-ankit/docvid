@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 
 import { LessonSkeleton } from "@/components/lesson-skeleton";
+import { LessonsSidebar } from "@/components/lessons-sidebar";
 
 import type { Lesson, LessonStatus } from "../lib/teach/types";
 import { LESSON_STORAGE_PREFIX } from "../lib/teach/types";
@@ -273,7 +274,9 @@ function TeachInner() {
   }
 
   return (
-    <div className="relative h-full overflow-y-auto bg-background text-foreground">
+    <div className="flex h-full bg-background text-foreground">
+      <LessonsSidebar />
+      <div className="relative h-full min-w-0 flex-1 overflow-y-auto">
       {/* ambient green backdrop — matches the home page (no grid) */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         {/* light mode: green → lime wash */}
@@ -298,10 +301,10 @@ function TeachInner() {
         {/* heading */}
         <div className="mb-9 text-center">
           <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight sm:text-5xl">
-            Teach with AI
+            Turn docs into video
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Describe what you want to learn — AI writes a step-by-step code
+            Describe what you want to learn, or paste a docs link… AI writes a step-by-step code
             lesson, narrates it, and animates it into a video.
           </p>
         </div>
@@ -420,6 +423,7 @@ function TeachInner() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

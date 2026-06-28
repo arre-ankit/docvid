@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -28,6 +28,16 @@ interface StepsEditorHeaderProps {
   onThemeChange: (theme: ShikiThemeChoice) => void;
   onAddStep: () => void;
   hideAddStep?: boolean;
+  /** Source docs URL the lesson was generated from, if any. */
+  sourceUrl?: string | null;
+}
+
+function hostFromUrl(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
 }
 
 function formatName(name: string) {
@@ -47,8 +57,10 @@ export function StepsEditorHeader({
   onThemeChange,
   onAddStep,
   hideAddStep,
+  sourceUrl,
 }: StepsEditorHeaderProps) {
   const { canCustomize, promptSignIn } = useLessonCustomize();
+  const sourceHost = sourceUrl ? hostFromUrl(sourceUrl) : null;
 
   const handleLangChange = (v: string) => {
     if (!canCustomize && v !== selectedLang) {
@@ -145,6 +157,19 @@ export function StepsEditorHeader({
           </Button>
         )}
       </div>
+
+      {sourceUrl && (
+        <a
+          href={sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={sourceHost ? `Open source docs · ${sourceHost}` : "Open source docs"}
+          aria-label="Open the source docs this lesson was generated from"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input bg-transparent text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        >
+          <ExternalLink className="size-4" />
+        </a>
+      )}
     </div>
   );
 }

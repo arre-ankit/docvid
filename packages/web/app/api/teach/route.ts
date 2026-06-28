@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { backendFetch } from "./backend";
+import { getSession } from "@/src/auth/server";
 import { createAnonymousLesson } from "@/src/lib/lessons.server";
 import {
   encodePendingLesson,
@@ -44,7 +45,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { claimToken } = await createAnonymousLesson(parsed.id);
+    // Own the lesson immediately if the creator is already signed in; otherwise
+    // it stays anonymous and is claimed via the pending cookie after login.
+    const session = await getSession();
+    const { claimToken } = await createAnonymousLesson(parsed.id, session?.user.id);
     const response = NextResponse.json({ id: parsed.id, claimToken }, { status: res.status });
 
     response.cookies.set(

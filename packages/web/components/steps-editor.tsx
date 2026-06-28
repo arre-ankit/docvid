@@ -63,6 +63,7 @@ export function StepsEditor({
   onClearStep,
   scrollToEndTrigger,
   docsBlocks,
+  sourceUrl,
 }: StepsEditorProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +93,7 @@ export function StepsEditor({
         onThemeChange={onThemeChange}
         onAddStep={onAddStep}
         hideAddStep
+        sourceUrl={sourceUrl}
       />
 
       <ScrollArea ref={scrollRef} className="flex-1 w-full min-h-0">
