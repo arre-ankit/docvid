@@ -39,6 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
+        // Browser extensions (e.g. Grammarly) inject attributes on <body> before
+        // hydration; suppress the resulting attribute mismatch warning.
+        suppressHydrationWarning
         className={`${geistMono.variable} ${geistSans.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased h-screen flex flex-col`}
       >
         <ThemeProvider

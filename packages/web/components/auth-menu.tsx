@@ -104,9 +104,6 @@ export function AuthMenu({ variant = "app", loginHref, className }: AuthMenuProp
           <Link href="/teach">New lesson</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled className="truncate text-xs text-muted-foreground">
-          {session.user.email}
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSignOut} disabled={signingOut}>
           <LogOut className="mr-2 h-4 w-4" />

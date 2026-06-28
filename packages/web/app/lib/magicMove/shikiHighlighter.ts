@@ -289,12 +289,21 @@ export type TokenLine = {
 
 let highlighterPromise: Promise<Highlighter> | null = null;
 
-async function getHighlighterOnce() {
-  if (!highlighterPromise) {
-    highlighterPromise = (async () => {
-      const shiki = await import("shiki");
-      return await shiki.createHighlighter({
-        themes: [
+/**
+ * A code-split chunk (e.g. a Shiki theme) can fail to load transiently — most
+ * often in dev after an HMR rebuild invalidates an old chunk hash, but also in
+ * prod right after a deploy. Retry the dynamic import once before giving up.
+ */
+function isChunkLoadError(err: unknown): boolean {
+  const name = (err as { name?: string } | null)?.name;
+  const message = err instanceof Error ? err.message : String(err);
+  return name === "ChunkLoadError" || /Loading chunk|Failed to load chunk/i.test(message);
+}
+
+async function createHighlighter() {
+  const shiki = await import("shiki");
+  return shiki.createHighlighter({
+    themes: [
           "github-light",
           "github-dark",
           "nord",
@@ -355,10 +364,28 @@ async function getHighlighterOnce() {
           "slack-ochin",
           "snazzy-light",
           "vitesse-black",
-        ],
-        langs: [...AVAILABLE_LANGUAGES],
-      });
-    })();
+    ],
+    langs: [...AVAILABLE_LANGUAGES],
+  });
+}
+
+async function getHighlighterOnce() {
+  if (!highlighterPromise) {
+    highlighterPromise = (async () => {
+      try {
+        return await createHighlighter();
+      } catch (err) {
+        // Retry once on a transient chunk-load failure (stale dev/deploy chunk).
+        if (isChunkLoadError(err)) return await createHighlighter();
+        throw err;
+      }
+    })().catch((err) => {
+      // Don't cache a rejected promise — otherwise one transient failure
+      // poisons every later call until a full reload. Reset so the next
+      // attempt retries from scratch.
+      highlighterPromise = null;
+      throw err;
+    });
   }
   return await highlighterPromise;
 }

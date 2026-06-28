@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { nanoid } from "nanoid";
 
 import { useDefaultCodeTheme } from "../lib/useDefaultCodeTheme";
+import { useIsMobile } from "../lib/useIsMobile";
 import { animateLayouts } from "../lib/magicMove/animate";
 import { buildBackgroundLayer, drawCodeFrame } from "../lib/magicMove/canvasRenderer";
 import { buildTokenFlowTransitionPlan, type TokenFlowStep, type TokenFlowTransitionPlan } from "../lib/magicMove/tokenFlowPlan";
@@ -273,6 +274,9 @@ function renderTimeline(opts: {
 function LearnPlayer() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // On phones the side-by-side split is unusable, so stack the panels: video
+  // preview on top, code steps below (resizable vertically).
+  const isMobile = useIsMobile();
   const lessonIdParam = searchParams.get("lesson") ?? searchParams.get("lessonid");
   // The learn page is lesson-only: gate the UI on the lesson's load status.
   const [lessonState, setLessonState] = useState<"loading" | "ready" | "error">("loading");
@@ -1353,6 +1357,90 @@ function LearnPlayer() {
     );
   }
 
+  const previewPanel = (
+    <PreviewPanel
+      canvasRef={canvasRef}
+      layoutError={layoutError}
+      onDismissError={() => setLayoutError(null)}
+      isPlaying={isPlaying}
+      onPlayPause={handlePlayPause}
+      playheadMs={playheadMs}
+      totalMs={timeline.totalMs}
+      onSeek={handleSeek}
+      onReset={handleReset}
+      stepLayouts={stepLayouts}
+      transitionMs={transitionMs}
+      onTransitionMsChange={setTransitionMs}
+      downloadUrl={downloadUrl}
+      downloadFormat={downloadFormat}
+      isExporting={isExporting}
+      exportPhase={exportPhase}
+      exportProgress={exportProgress}
+      onExport={onExport}
+      canExport={canExport}
+      filename={filename}
+      onFilenameChange={setFilename}
+      animationType={animationType}
+      onAnimationTypeChange={(type) => {
+        setAnimationType(type);
+        if (type === "token-flow" && transitionMs > 5000) setTransitionMs(700);
+      }}
+      tokenFlowPreset={tokenFlowPreset}
+      onTokenFlowPresetChange={setTokenFlowPreset}
+      typingWpm={typingWpm}
+      onTypingWpmChange={setTypingWpm}
+      naturalFlow={naturalFlow}
+      onNaturalFlowChange={setNaturalFlow}
+      themeVariant={themeVariant}
+      soundEnabled={!audioMuted}
+      onSoundToggle={() => {
+        const next = !audioMuted;
+        setAudioMuted(next);
+        if (audioRef.current) audioRef.current.muted = next;
+      }}
+      backgroundPadding={activeBackgroundTheme ? backgroundPaddingPx : 0}
+      backgroundThemeId={backgroundThemeId}
+      onBackgroundThemeIdChange={setBackgroundThemeId}
+      captionThemeId={captionThemeId}
+      onCaptionThemeIdChange={setCaptionThemeId}
+      lessonVoice={lessonVoice}
+      onRevoice={handleRevoice}
+      isRevoicing={isRevoicing}
+      showLineNumbers={simpleShowLineNumbers}
+      onShowLineNumbersChange={setSimpleShowLineNumbers}
+      backgroundPaddingPx={backgroundPaddingPx}
+      onBackgroundPaddingPxChange={setBackgroundPaddingPx}
+      lessonMode={lessonActive}
+      overlay={
+        lessonActive && lessonSegments ? (
+          <LessonOverlay
+            title={lessonTitle}
+            segments={lessonSegments}
+            playheadMs={playheadMs}
+            themeVariant={themeVariant}
+            codeBg={stepLayouts?.[0]?.layout.bg ?? null}
+            backgroundPadding={activeBackgroundTheme ? backgroundPaddingPx : 0}
+            titleBarHeight={previewTitleBarHeight}
+          />
+        ) : null
+      }
+      caption={
+        lessonActive && lessonSegments ? (
+          <LessonCaption
+            segments={lessonSegments}
+            playheadMs={playheadMs}
+            themeVariant={themeVariant}
+            accentColor={
+              captionThemeId !== "none"
+                ? getBackgroundThemeById(captionThemeId)?.previewColor ?? null
+                : null
+            }
+          />
+        ) : null
+      }
+    />
+  );
+
   return (
     <LessonCustomizeProvider>
       <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
@@ -1360,7 +1448,13 @@ function LearnPlayer() {
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio ref={audioRef} src={lessonAudioUrl} preload="auto" className="hidden" />
       )}
-      <ResizablePanelGroup direction="horizontal" className="flex-1 w-full max-w-full">
+      <ResizablePanelGroup
+        key={isMobile ? "stack" : "split"}
+        direction={isMobile ? "vertical" : "horizontal"}
+        className="flex-1 w-full max-w-full min-h-0"
+      >
+        {isMobile && previewPanel}
+        {isMobile && <ResizableHandle withHandle />}
         <StepsEditor
           steps={simpleSteps}
           selectedLang={selectedLang}
@@ -1394,89 +1488,8 @@ function LearnPlayer() {
           sourceUrl={lessonSourceUrl}
         />
 
-        <ResizableHandle />
-
-        <PreviewPanel
-          canvasRef={canvasRef}
-          layoutError={layoutError}
-          onDismissError={() => setLayoutError(null)}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
-          playheadMs={playheadMs}
-          totalMs={timeline.totalMs}
-          onSeek={handleSeek}
-          onReset={handleReset}
-          stepLayouts={stepLayouts}
-          transitionMs={transitionMs}
-          onTransitionMsChange={setTransitionMs}
-          downloadUrl={downloadUrl}
-          downloadFormat={downloadFormat}
-          isExporting={isExporting}
-          exportPhase={exportPhase}
-          exportProgress={exportProgress}
-          onExport={onExport}
-          canExport={canExport}
-          filename={filename}
-          onFilenameChange={setFilename}
-          animationType={animationType}
-          onAnimationTypeChange={(type) => {
-            setAnimationType(type);
-            if (type === "token-flow" && transitionMs > 5000) setTransitionMs(700);
-          }}
-          tokenFlowPreset={tokenFlowPreset}
-          onTokenFlowPresetChange={setTokenFlowPreset}
-          typingWpm={typingWpm}
-          onTypingWpmChange={setTypingWpm}
-          naturalFlow={naturalFlow}
-          onNaturalFlowChange={setNaturalFlow}
-          themeVariant={themeVariant}
-          soundEnabled={!audioMuted}
-          onSoundToggle={() => {
-            const next = !audioMuted;
-            setAudioMuted(next);
-            if (audioRef.current) audioRef.current.muted = next;
-          }}
-          backgroundPadding={activeBackgroundTheme ? backgroundPaddingPx : 0}
-          backgroundThemeId={backgroundThemeId}
-          onBackgroundThemeIdChange={setBackgroundThemeId}
-          captionThemeId={captionThemeId}
-          onCaptionThemeIdChange={setCaptionThemeId}
-          lessonVoice={lessonVoice}
-          onRevoice={handleRevoice}
-          isRevoicing={isRevoicing}
-          showLineNumbers={simpleShowLineNumbers}
-          onShowLineNumbersChange={setSimpleShowLineNumbers}
-          backgroundPaddingPx={backgroundPaddingPx}
-          onBackgroundPaddingPxChange={setBackgroundPaddingPx}
-          lessonMode={lessonActive}
-          overlay={
-            lessonActive && lessonSegments ? (
-              <LessonOverlay
-                title={lessonTitle}
-                segments={lessonSegments}
-                playheadMs={playheadMs}
-                themeVariant={themeVariant}
-                codeBg={stepLayouts?.[0]?.layout.bg ?? null}
-                backgroundPadding={activeBackgroundTheme ? backgroundPaddingPx : 0}
-                titleBarHeight={previewTitleBarHeight}
-              />
-            ) : null
-          }
-          caption={
-            lessonActive && lessonSegments ? (
-              <LessonCaption
-                segments={lessonSegments}
-                playheadMs={playheadMs}
-                themeVariant={themeVariant}
-                accentColor={
-                  captionThemeId !== "none"
-                    ? getBackgroundThemeById(captionThemeId)?.previewColor ?? null
-                    : null
-                }
-              />
-            ) : null
-          }
-        />
+        {!isMobile && <ResizableHandle />}
+        {!isMobile && previewPanel}
       </ResizablePanelGroup>
       </div>
     </LessonCustomizeProvider>

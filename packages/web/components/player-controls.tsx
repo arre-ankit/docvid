@@ -271,7 +271,7 @@ export function PlayerControls({
       {/* Options: styling on the left, voice + playback + export on the right */}
       <div
         className={cn(
-          "flex items-center justify-between gap-3 border-t pt-2.5",
+          "flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t pt-2.5",
           isFullscreen ? "border-white/10" : "border-border/40",
         )}
       >
@@ -366,9 +366,10 @@ export function PlayerControls({
             )}
           />
           <CustomizeGate title="Sign in to export your lesson">
+            {/* Export/download is hidden on phones (no practical file export there). */}
             <Button
               size="sm"
-              className={cn("min-w-[120px]", isExporting && "opacity-80")}
+              className={cn("hidden min-w-[120px] sm:inline-flex", isExporting && "opacity-80")}
               onClick={() => gateAction(() => onExport("mp4"))}
               disabled={!canExport || isExporting}
             >
