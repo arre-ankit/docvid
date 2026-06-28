@@ -33,16 +33,6 @@ export function Footer() {
                 "Docs in, knowledge out in video form."
               </p>
             </div>
-
-            {/* CTA Button */}
-            <Link
-              href="/teach"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-black transition-transform hover:scale-[1.02]"
-              style={{ backgroundColor: LIME }}
-            >
-              Login
-              <span className="text-lg">→</span>
-            </Link>
           </div>
 
           {/* Right side: Link columns */}
@@ -71,7 +61,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="/library"
                     className="text-sm text-white/80 hover:text-white transition-colors"
                   >
                     Browse lessons

@@ -13,12 +13,8 @@ import { cn } from "@/lib/utils";
 
 /** Marketing nav links shown in the centre of the bar (home only). */
 const NAV_LINKS = [
-  { label: "How it Works", href: "/#how" },
-  { label: "Examples", href: "/#examples" },
-  { label: "Roadmap", href: "/#roadmap" },
-  { label: "Blog", href: "/#blog" },
+  { label: "Features", href: "/#features" },
   { label: "FAQ", href: "/#faq" },
-  { label: "Contact", href: "/#contact" },
 ];
 
 // At the top of the page the bar is a light frosted glass that lets the page
