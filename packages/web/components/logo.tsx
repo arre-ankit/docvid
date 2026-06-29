@@ -34,3 +34,15 @@ export function Logo({
     </span>
   );
 }
+
+/**
+ * DocVid wordmark: "Doc" in the current foreground colour, "vid" in brand lime
+ * (#CBFF2D). Use anywhere the brand name is shown as text.
+ */
+export function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={className} aria-label="DocVid">
+      Doc<span className="text-[#CBFF2D]">Vid</span>
+    </span>
+  );
+}

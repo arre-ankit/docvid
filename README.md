@@ -1,6 +1,18 @@
-# DocVid
+<p align="center">
+  <img src="https://imghost.ankit992827.workers.dev/i/036m6h2v186d.png" alt="DocVid" width="100%" />
+</p>
 
-Turn docs and prompts into narrated, animated code lessons.
+
+# DocVid 
+
+Turn documentation into narrated, animated code lessons.
+
+Paste a prompt or a docs URL → DocVid generates a step-by-step code lesson, writes a
+narration script, voices it with text-to-speech, and plays it back as an animated,
+synced code walkthrough you can watch or export as video.
+
+
+## Monorepo layout
 
 A pnpm + Turborepo monorepo:
 

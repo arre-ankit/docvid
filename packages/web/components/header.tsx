@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
-import { Logo } from "./logo";
+import { Logo, Wordmark } from "./logo";
 import { HeaderShortcuts } from "./keyboard-shortcuts";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthMenu } from "./auth-menu";
@@ -98,9 +98,7 @@ export function Header() {
             aria-label="DocVid — home"
           >
             <Logo className="text-xl sm:text-2xl text-white" />
-            <span className="hidden text-base font-bold tracking-tight sm:inline sm:text-xl">
-              DocVid
-            </span>
+            <Wordmark className="hidden text-base font-bold tracking-tight sm:inline sm:text-xl" />
           </Link>
 
           {/* ---------- Centre: nav links ---------- */}
@@ -166,11 +164,16 @@ function SimpleHeader({ isPlayer }: { isPlayer: boolean }) {
     <nav className="sticky top-0 z-[9999] w-full border-b border-border bg-background px-4 py-1.5 sm:px-6 sm:py-2">
       <div className="mx-auto flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <Logo className="text-xl sm:text-2xl" />
-          <h1 className="font-sans text-base font-bold tracking-tight text-foreground sm:text-xl">
-            DocVid
-          </h1>
+        <Link href="/" className="flex flex-shrink-0 items-center">
+          {/* Dark chip behind the whole lockup (icon + wordmark) in light mode so
+              the lime mark pops; in dark mode the header is already dark, so the
+              chip is transparent. */}
+          <span className="-my-1 flex items-center gap-2 rounded-xl bg-[#1f2c15] px-2.5 py-1 text-white dark:m-0 dark:bg-transparent dark:p-0 dark:text-foreground">
+            <Logo className="text-xl text-white sm:text-2xl" />
+            <h1 className="font-sans text-base font-bold tracking-tight sm:text-xl">
+              <Wordmark />
+            </h1>
+          </span>
         </Link>
 
         {/* Player keyboard-shortcut hints (only on the /learn player route) */}

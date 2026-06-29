@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "@/components/logo";
+import { Logo, Wordmark } from "@/components/logo";
 
 const LIME = "#CBFF2E";
 const GREEN = "#007A55";
@@ -39,7 +39,7 @@ export function AuthSplitShell({ children, topAction }: AuthSplitShellProps) {
           <header className="flex items-center justify-between px-6 py-5 sm:px-10 sm:py-6">
             <Link href="/" className="flex items-center gap-2.5" aria-label="DocVid — home">
               <Logo className="text-2xl" />
-              <span className="text-lg font-bold tracking-tight text-foreground">DocVid</span>
+              <Wordmark className="text-lg font-bold tracking-tight text-foreground" />
             </Link>
             {topAction}
           </header>

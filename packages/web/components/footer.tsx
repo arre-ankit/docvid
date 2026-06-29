@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "./logo";
+import { Logo, Wordmark } from "./logo";
 
 const LIME = "#CBFF2E";
 const GREEN = "#007A55";
@@ -24,7 +24,7 @@ export function Footer() {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <Logo className="text-2xl text-white" />
-              <h2 className="text-xl font-bold">DocVid</h2>
+              <Wordmark className="text-xl font-bold" />
             </div>
 
             {/* Tagline */}
