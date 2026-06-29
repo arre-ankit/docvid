@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://imghost.ankit992827.workers.dev/i/036m6h2v186d.png" alt="DocVid" width="100%" />
+  <img src="https://imghost.ankit992827.workers.dev/i/15646c0x156t.png" alt="DocVid" width="100%" />
 </p>
 
 
