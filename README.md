@@ -45,3 +45,7 @@ pnpm typecheck  # typecheck all workspaces
 - **Package manager:** pnpm workspaces
 - **Task runner:** Turborepo
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/)
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).
