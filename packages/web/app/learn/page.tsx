@@ -381,6 +381,11 @@ function LearnPlayer() {
           if (cancelled) return;
           if (data?.status === "complete" && data.lesson) {
             apply(data.lesson);
+          } else if (data?.status === "complete" && !data.lesson) {
+            // Completed but no lesson payload (e.g. it expired from storage) —
+            // treat as terminal instead of polling until the 5-minute timeout.
+            setLessonError(data.error || "This lesson has expired and is no longer available.");
+            setLessonState("error");
           } else if (data?.status === "error" || data?.status === "not_found") {
             setLessonError(
               data.status === "not_found" ? "This lesson could not be found." : data.error || "This lesson failed to generate.",

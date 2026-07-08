@@ -6,6 +6,7 @@ import { buildNarrationSegments, generateDocsBlocks, generateLessonDraft } from 
 import { fetchPageMarkdown } from "./browser";
 import type { Env } from "./env";
 import { synthesizeSegmentsInworld } from "./inworld";
+import { getLesson, putLesson } from "./lessonStore";
 import { synthesizeSegmentsMelo } from "./melotts";
 
 /** Rough spoken duration (ms) for text when no real audio is available (~165 wpm, min 1.4s). */
@@ -123,10 +124,8 @@ export class TeachWorkflow extends WorkflowEntrypoint<Env, WorkflowParams> {
         docsBlocks: docsBlocks ?? undefined,
         createdAt: new Date().toISOString(),
       };
-      await this.env.LESSONS.put(instanceId, JSON.stringify(stored), {
-        // Lessons are ephemeral artifacts; expire after 7 days.
-        expirationTtl: 60 * 60 * 24 * 7,
-      });
+      // Durable in R2 (source of truth, no expiry) + KV cache for fast reads.
+      await putLesson(this.env, instanceId, stored);
     });
 
     return { ok: true, audioKey: narration.audioKey };
@@ -161,9 +160,8 @@ export class TeachWorkflow extends WorkflowEntrypoint<Env, WorkflowParams> {
       "revoice-narrate",
       { retries: { limit: 2, delay: "3 seconds", backoff: "exponential" }, timeout: "3 minutes" },
       async (): Promise<{ audioKey: string | null; durations: number[] }> => {
-        const raw = await this.env.LESSONS.get(lessonId);
-        if (!raw) throw new Error(`lesson ${lessonId} not found`);
-        const stored = JSON.parse(raw) as StoredLesson;
+        const stored = await getLesson(this.env, lessonId);
+        if (!stored) throw new Error(`lesson ${lessonId} not found`);
         const texts = buildNarrationSegments(stored);
 
         const { audio, durations, contentType } = await this.synthesize(
@@ -182,9 +180,8 @@ export class TeachWorkflow extends WorkflowEntrypoint<Env, WorkflowParams> {
     );
 
     await step.do("revoice-persist", async () => {
-      const raw = await this.env.LESSONS.get(lessonId);
-      if (!raw) throw new Error(`lesson ${lessonId} not found`);
-      const stored = JSON.parse(raw) as StoredLesson;
+      const stored = await getLesson(this.env, lessonId);
+      if (!stored) throw new Error(`lesson ${lessonId} not found`);
       const texts = buildNarrationSegments(stored);
       const { segments, totalMs } = buildSegments(texts, narration.durations);
       const updated: StoredLesson = {
@@ -194,9 +191,7 @@ export class TeachWorkflow extends WorkflowEntrypoint<Env, WorkflowParams> {
         totalMs,
         voice: voice || stored.voice,
       };
-      await this.env.LESSONS.put(lessonId, JSON.stringify(updated), {
-        expirationTtl: 60 * 60 * 24 * 7,
-      });
+      await putLesson(this.env, lessonId, updated);
     });
 
     return { ok: true, audioKey: narration.audioKey };

@@ -1,6 +1,7 @@
-import type { StoredLesson, WorkflowParams } from "@docvid/shared";
+import type { WorkflowParams } from "@docvid/shared";
 
 import type { Env } from "./env";
+import { getLesson } from "./lessonStore";
 import { TeachWorkflow } from "./workflow";
 
 export { TeachWorkflow };
@@ -73,7 +74,7 @@ export default {
       const voice = (body.voice ?? "").trim();
       if (!voice) return json({ error: "voice is required" }, { status: 400 }, cors);
 
-      const exists = await env.LESSONS.get(id);
+      const exists = await getLesson(env, id);
       if (!exists) return json({ error: "lesson not found" }, { status: 404 }, cors);
 
       const instance = await env.TEACH_WORKFLOW.create({
@@ -86,9 +87,8 @@ export default {
     const lessonMatch = url.pathname.match(/^\/lessons\/([\w-]+)$/);
     if (lessonMatch && request.method === "GET") {
       const id = lessonMatch[1]!;
-      const stored = await env.LESSONS.get(id);
-      if (stored) {
-        const lesson = JSON.parse(stored) as StoredLesson;
+      const lesson = await getLesson(env, id);
+      if (lesson) {
         const audioUrl = lesson.audioKey ? `/audio/${id}` : null;
         return json({ status: "complete", lesson, audioUrl }, { status: 200 }, cors);
       }
@@ -97,12 +97,19 @@ export default {
       try {
         const instance = await env.TEACH_WORKFLOW.get(id);
         const status = await instance.status();
+        // A "complete" workflow with no lesson in KV means the lesson expired
+        // (lessons are kept for 7 days; workflow instances outlive them). Report
+        // it as an expired error so the client stops polling instead of spinning
+        // until its 5-minute timeout.
+        if (status.status === "complete") {
+          return json(
+            { status: "error", error: "This lesson has expired and is no longer available." },
+            { status: 404 },
+            cors,
+          );
+        }
         const phase =
-          status.status === "errored" || status.status === "terminated"
-            ? "error"
-            : status.status === "complete"
-              ? "complete"
-              : "running";
+          status.status === "errored" || status.status === "terminated" ? "error" : "running";
         return json(
           { status: phase, workflow: status.status, error: status.error ?? null },
           { status: 200 },
