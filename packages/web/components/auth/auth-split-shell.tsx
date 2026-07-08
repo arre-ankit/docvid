@@ -37,7 +37,7 @@ export function AuthSplitShell({ children, topAction }: AuthSplitShellProps) {
         {/* Form column */}
         <div className="flex min-h-dvh w-full flex-col bg-background lg:w-1/2 lg:max-w-[720px] lg:shrink-0 lg:border-r lg:border-border/40">
           <header className="flex items-center justify-between px-6 py-5 sm:px-10 sm:py-6">
-            <Link href="/" className="flex items-center gap-2.5" aria-label="DocVid — home">
+            <Link href="/" className="flex items-center gap-2.5" aria-label="DocVid home">
               <Logo className="text-2xl" />
               <Wordmark className="text-lg font-bold tracking-tight text-foreground" />
             </Link>

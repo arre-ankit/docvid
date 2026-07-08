@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Pricing — DocVid",
+  title: "Pricing | DocVid",
   description: "Upgrade to DocVid Pro for unlimited lessons and premium voices.",
 };
 

@@ -5,27 +5,31 @@ const GREEN = "#007A55";
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is DocVid?",
-    a: "DocVid turns documentation into narrated, animated coding lessons. Paste a docs link or describe a topic, and AI writes a step-by-step lesson, narrates it, and animates the code into a video you can watch and share.",
+    a: "DocVid turns your documentation into a narrated, animated video course, with no screen recorder and no editing suite. Paste a docs link or describe a topic, and AI writes the lesson, records the voiceover, and animates the code into a share-ready video.",
   },
   {
-    q: "How does it work?",
-    a: "Drop a documentation URL or a plain-text prompt into the box. AI reads it, breaks it into clear code steps, writes a voiceover script, and renders everything as a typed-out code animation with synced narration.",
+    q: "Who is DocVid for?",
+    a: "Anyone who ships technical content: DevRel teams and developer advocates, course creators, indie founders launching a product, educators, and open-source maintainers who want a polished video walkthrough of their docs without losing a weekend to it.",
   },
   {
-    q: "Do I need an account to try it?",
-    a: "No. You can generate a lesson without signing in. Sign in only when you want to customize the look, pick a different voice, or save lessons to your library.",
+    q: "Isn't it faster to just record it myself?",
+    a: "Recording one tutorial means screen capture, retakes, a voiceover, and editing. That is usually an afternoon, often a whole weekend. DocVid builds the same thing from a single link in seconds, so you can ship a course in the time it used to take to set up your mic.",
   },
   {
-    q: "Can I export or share the video?",
-    a: "Yes. Finished lessons can be exported as MP4 (with the narration muxed in), GIF, or WebM, or you can share a link so anyone can watch the lesson in the browser.",
+    q: "Can I publish the videos commercially?",
+    a: "Yes. The videos are yours to put on YouTube, your docs site, a paid course, or a launch thread. Export an MP4 and use it however you like.",
   },
   {
-    q: "Which languages and themes are supported?",
-    a: "Dozens of languages with full syntax highlighting, including TypeScript, JavaScript, Python, Go, and Rust, plus a wide range of editor themes you can switch between on the fly.",
+    q: "Do I need an account, and what's free vs Pro?",
+    a: "You can generate a lesson without signing in. Free covers creating lessons; Pro unlocks unlimited lessons and the full set of narrator voices, built for creators who publish regularly.",
   },
   {
-    q: "Can I change the narrator's voice?",
-    a: "Absolutely. Choose from several natural-sounding voices before you generate, and re-voice an existing lesson anytime without regenerating the code or script.",
+    q: "How do I export or share the finished video?",
+    a: "Export as MP4 with the narration muxed in. You can also just share a link and anyone can watch it in the browser, no login or download.",
+  },
+  {
+    q: "Can I pick the voice, language, and theme?",
+    a: "Yes. Choose from several natural-sounding voices before you generate, and re-voice a lesson later without regenerating the code. Dozens of languages get full syntax highlighting, with editor themes you can switch on the fly.",
   },
 ];
 

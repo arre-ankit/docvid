@@ -57,14 +57,14 @@ export function Hero() {
       <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
         <h1 className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-2 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
           <span className="text-foreground">Stop</span>
-          <span className="text-muted-foreground/40">reading</span>
+          <span className="text-muted-foreground/40">recording</span>
           <Pill
             icon={<FileText className="h-[0.85em] w-[0.85em]" strokeWidth={2.5} />}
-            label="docs"
+            label="tutorials"
             tone="blue"
           />
           <span className="text-foreground">start</span>
-          <span className="text-muted-foreground/40">watching</span>
+          <span className="text-muted-foreground/40">shipping</span>
           <Pill
             icon={<Play className="h-[0.8em] w-[0.8em] fill-current" />}
             label="video"
@@ -73,8 +73,8 @@ export function Hero() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-base sm:text-lg text-muted-foreground">
-          Paste any documentation link and let AI turn it into a guided coding
-          lesson in minutes, not hours.
+          Paste a docs link and ship a narrated, animated video course in
+          seconds, not the weekend it takes to record and edit one yourself.
         </p>
       </div>
 

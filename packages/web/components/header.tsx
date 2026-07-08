@@ -95,7 +95,7 @@ export function Header() {
           <Link
             href="/"
             className="flex h-full items-center gap-2.5 rounded-full px-5 sm:px-6"
-            aria-label="DocVid — home"
+            aria-label="DocVid home"
           >
             <Logo className="text-xl sm:text-2xl text-white" />
             <Wordmark className="hidden text-base font-bold tracking-tight sm:inline sm:text-xl" />

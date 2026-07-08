@@ -44,9 +44,9 @@ const PROMPT_EXAMPLES = [
   "Refactor a callback into async/await",
 ];
 const DOC_EXAMPLES = [
-  "https://react.dev/learn/add-react-to-an-existing-project",
-  "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
-  "https://tailwindcss.com/docs/installation/using-vite",
+  "https://resend.com/docs/send-with-nextjs",
+  "https://nextjs.org/docs/app/getting-started/layouts-and-pages",
+  "https://developers.cloudflare.com/agents/getting-started/quick-start/",
 ];
 
 function TeachInner() {
@@ -117,7 +117,7 @@ function TeachInner() {
             setStatusText("Timed out waiting for the lesson.");
             return;
           }
-          setStatusText("Generating code steps and narration… this usually takes ~20–40s.");
+          setStatusText("Generating code steps and narration… this usually takes ~20-40s.");
           pollRef.current = setTimeout(tick, POLL_MS);
         } catch {
           setPhase("error");
