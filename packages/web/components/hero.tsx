@@ -73,8 +73,8 @@ export function Hero() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-base sm:text-lg text-muted-foreground">
-          Paste a docs link and ship a narrated, animated video course in
-          seconds, not the weekend it takes to record and edit one yourself.
+          Don't waste a weekend recording and editing videos. Paste a docs link
+          and ship a narrated, animated video course in seconds.
         </p>
       </div>
 
@@ -244,7 +244,7 @@ function DocsCard() {
             }
           }}
           rows={3}
-          placeholder="Describe what you want to learn, or paste a docs link…"
+          placeholder="Paste a docs link, or describe a topic to turn into a video…"
           aria-label="Describe a lesson or paste a docs link"
           className="min-h-24 w-full resize-none bg-transparent px-3 pt-3 text-base text-white placeholder:text-white/40 focus:outline-none"
         />
