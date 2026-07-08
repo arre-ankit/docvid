@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { Footer } from "@/components/footer";
 import { FlowSection } from "@/components/flow-section";
 import { PricingSection } from "@/components/pricing-section";
@@ -5,6 +7,12 @@ import { FaqSection } from "@/components/faq-section";
 import { TechStackPile } from "@/components/tech-stack-pile";
 import { Hero } from "@/components/hero";
 import { LogoMarquee } from "@/components/logo-marquee";
+
+export const metadata: Metadata = {
+  description:
+    "DocVid turns any documentation into a narrated, animated video course. Paste a docs link and ship a share-ready coding tutorial in seconds, with no screen recorder and no editing.",
+  alternates: { canonical: "/" },
+};
 
 export default function Page() {
   return (
