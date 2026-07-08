@@ -178,14 +178,14 @@ function LogoTile({ icon, i, n }: { icon: SimpleIcon; i: number; n: number }) {
 
 /* Documentation links the quick-pick chips drop into the input. */
 const EXAMPLES = [
-  { label: "react.dev", url: "https://react.dev/learn/add-react-to-an-existing-project" },
+  { label: "resend.com", url: "https://resend.com/docs/send-with-nextjs" },
   {
     label: "nextjs.org",
-    url: "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
+    url: "https://nextjs.org/docs/app/getting-started/layouts-and-pages",
   },
   {
-    label: "tailwindcss",
-    url: "https://tailwindcss.com/docs/installation/using-vite",
+    label: "cloudflare",
+    url: "https://developers.cloudflare.com/agents/getting-started/quick-start/",
   },
 ];
 
