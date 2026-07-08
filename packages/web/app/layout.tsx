@@ -24,10 +24,70 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://docvid.in";
+const OG_DESCRIPTION =
+  "Stop recording tutorials. Paste a docs link and ship a narrated, animated video course in seconds.";
+
 export const metadata: Metadata = {
-  title: "DocVid",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "DocVid | Turn docs into a narrated video course",
+    template: "%s | DocVid",
+  },
+  description: OG_DESCRIPTION,
+  applicationName: "DocVid",
+  keywords: [
+    "docs to video",
+    "documentation to video",
+    "AI video tutorials",
+    "code walkthrough generator",
+    "narrated code animation",
+    "developer tutorial generator",
+    "video course generator",
+    "coding lessons",
+    "DevRel content",
+  ],
+  authors: [{ name: "DocVid" }],
+  creator: "DocVid",
+  publisher: "DocVid",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   icons: {
     icon: "/favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "DocVid",
+    url: SITE_URL,
+    title: "DocVid | Turn docs into a narrated video course",
+    description: OG_DESCRIPTION,
+    locale: "en_US",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "DocVid: stop recording tutorials, start shipping video.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DocVid | Turn docs into a narrated video course",
+    description: OG_DESCRIPTION,
+    images: ["/og.png"],
   },
 };
 

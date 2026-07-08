@@ -11,8 +11,10 @@ import { cn } from "@/lib/utils";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Pricing | DocVid",
-  description: "Upgrade to DocVid Pro for unlimited lessons and premium voices.",
+  title: "Pricing",
+  description:
+    "Create lessons for free, or upgrade to DocVid Pro for unlimited video courses and the full set of narrator voices.",
+  alternates: { canonical: "/pricing" },
 };
 
 const GREEN = "#007A55";

@@ -324,8 +324,8 @@ function TeachInner() {
             Turn docs into video
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Describe what you want to learn, or paste a docs link… AI writes a step-by-step code
-            lesson, narrates it, and animates it into a video.
+            Paste a docs link, or describe a topic. AI writes the lesson, narrates it, and animates
+            the code into a share-ready video. No screen recorder, no editing.
           </p>
         </div>
 
@@ -341,7 +341,7 @@ function TeachInner() {
                 submit();
               }
             }}
-            placeholder="Describe what you want to learn, or paste a docs link…"
+            placeholder="Paste a docs link, or describe a topic to turn into a video…"
             className="min-h-28 resize-none border-0 bg-transparent px-3 pt-3 text-base text-white shadow-none placeholder:text-white/40 focus-visible:ring-0"
             disabled={busy}
           />
